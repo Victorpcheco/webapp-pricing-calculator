@@ -60,3 +60,9 @@ src/environments/environment.prod.ts
 .DS_Store
 Thumbs.db
 desktop.ini
+
+## --- IDE SETTINGS ---
+.idea/
+*.iws
+*.iml
+*.ipr
