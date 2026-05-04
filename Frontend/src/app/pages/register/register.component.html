@@ -1,0 +1,73 @@
+<div class="auth-page">
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>Comece a<br />controlar<br />seus lucros.</h1>
+
+      <p>
+        Crie sua conta para organizar custos, acompanhar ingredientes e vender
+        com mais segurança em cada receita.
+      </p>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="logo">M</div>
+        <span>MeuPreço</span>
+      </div>
+
+      <h2>Criar conta</h2>
+      <p class="subtitle">Preencha seus dados para acessar a plataforma.</p>
+
+      <form (submit)="onSubmit($event)">
+        <div class="form-group">
+          <label for="name">Nome</label>
+          <input
+            id="name"
+            type="text"
+            autocomplete="name"
+            placeholder="Maria Silva"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            autocomplete="email"
+            placeholder="maria@email.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input
+            id="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div class="form-group last">
+          <label for="confirm-password">Confirmar senha</label>
+          <input
+            id="confirm-password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button type="submit">Criar Conta</button>
+      </form>
+
+      <p class="auth-link">
+        Já tem conta?
+        <a routerLink="/">Entrar</a>
+      </p>
+    </div>
+  </section>
+</div>
