@@ -1,0 +1,59 @@
+.create-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.products-layout {
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.7fr);
+}
+
+.products-table .workspace-table-row {
+  grid-template-columns: minmax(220px, 1.5fr) repeat(4, minmax(80px, 0.5fr)) minmax(120px, 0.7fr);
+}
+
+.product-name,
+.review-item > div,
+.target-card > div {
+  display: grid;
+  gap: 4px;
+}
+
+.product-name small,
+.review-item small {
+  color: #64748b;
+}
+
+.side-stack,
+.review-list,
+.target-card {
+  gap: 14px;
+}
+
+.target-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.target-card > div {
+  padding: 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.target-card strong {
+  color: #172033;
+  font-size: 22px;
+}
+
+@media (max-width: 1180px) {
+  .products-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .target-card {
+    grid-template-columns: 1fr;
+  }
+}

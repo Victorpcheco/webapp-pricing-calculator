@@ -1,0 +1,85 @@
+.status-filter {
+  border: 1px solid #dbe3ef;
+  background: #ffffff;
+  color: #64748b;
+}
+
+.status-filter.active {
+  background: #172033;
+  color: #ffffff;
+}
+
+.orders-layout {
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.7fr);
+}
+
+.orders-table .workspace-table-row {
+  grid-template-columns: 76px minmax(160px, 1fr) minmax(220px, 1.2fr) 110px 100px 110px;
+}
+
+.order-id {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.order-customer,
+.production-step .workspace-list-row > div,
+.summary-grid > div {
+  display: grid;
+  gap: 4px;
+}
+
+.order-customer small,
+.production-step small {
+  color: #64748b;
+}
+
+.side-stack,
+.production-steps,
+.production-step {
+  gap: 14px;
+}
+
+.production-step {
+  display: grid;
+}
+
+.production-step .workspace-list-row > span {
+  width: 38px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-grid > div {
+  padding: 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.summary-grid strong {
+  color: #172033;
+  font-size: 22px;
+}
+
+@media (max-width: 1180px) {
+  .orders-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

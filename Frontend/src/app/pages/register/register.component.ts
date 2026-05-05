@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -8,7 +8,10 @@ import { RouterLink } from '@angular/router';
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
+  private readonly router = inject(Router);
+
   onSubmit(event: Event) {
     event.preventDefault();
+    void this.router.navigate(['/dashboard']);
   }
 }

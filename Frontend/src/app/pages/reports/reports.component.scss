@@ -1,0 +1,57 @@
+.period-filter {
+  border: 1px solid #dbe3ef;
+  background: #ffffff;
+  color: #64748b;
+}
+
+.period-filter.active {
+  background: #172033;
+  color: #ffffff;
+}
+
+.reports-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cash-panel {
+  grid-column: 1 / -1;
+}
+
+.chart-list,
+.chart-item,
+.top-list {
+  gap: 14px;
+}
+
+.chart-item {
+  display: grid;
+}
+
+.chart-bar {
+  height: 10px;
+}
+
+.top-item > div {
+  display: grid;
+  gap: 4px;
+}
+
+.top-item small {
+  color: #64748b;
+}
+
+.top-item span,
+.cash-table strong {
+  color: #172033;
+  font-weight: 800;
+}
+
+.cash-table .workspace-table-row {
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+}
+
+@media (max-width: 900px) {
+  .reports-layout {
+    grid-template-columns: 1fr;
+  }
+}
