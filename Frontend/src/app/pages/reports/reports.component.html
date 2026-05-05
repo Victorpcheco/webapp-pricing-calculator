@@ -1,0 +1,129 @@
+<app-shell>
+  <header class="workspace-topbar">
+    <div>
+      <span class="workspace-eyebrow">Relatórios</span>
+      <h1 class="workspace-title">Margens e resultado</h1>
+    </div>
+
+    <div class="workspace-actions">
+      <button
+        *ngFor="let period of periods; trackBy: trackByPeriod"
+        class="workspace-button period-filter"
+        type="button"
+        [class.active]="period === selectedPeriod"
+        (click)="selectPeriod(period)"
+      >
+        {{ period }}
+      </button>
+
+      <button class="workspace-button secondary" type="button">Exportar PDF</button>
+    </div>
+  </header>
+
+  <section class="workspace-metrics" aria-label="Indicadores financeiros">
+    <article
+      *ngFor="let metric of metrics; trackBy: trackByLabel"
+      class="workspace-metric"
+      [ngClass]="metric.tone"
+    >
+      <span>{{ metric.label }}</span>
+      <strong>{{ metric.value }}</strong>
+      <small>{{ metric.detail }}</small>
+    </article>
+  </section>
+
+  <section class="workspace-grid reports-layout">
+    <article class="workspace-panel">
+      <div class="workspace-panel-header">
+        <div>
+          <span class="workspace-eyebrow">Custos</span>
+          <h2 class="workspace-panel-title">Distribuição</h2>
+        </div>
+      </div>
+
+      <div class="chart-list">
+        <div *ngFor="let item of costChart; trackBy: trackByLabel" class="chart-item">
+          <div class="workspace-list-row">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+          <div class="workspace-bar chart-bar">
+            <span [ngClass]="item.tone" [style.width.%]="item.percent"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="workspace-panel">
+      <div class="workspace-panel-header">
+        <div>
+          <span class="workspace-eyebrow">Produtos</span>
+          <h2 class="workspace-panel-title">Mais rentáveis</h2>
+        </div>
+      </div>
+
+      <div class="top-list">
+        <div
+          *ngFor="let product of topProducts; trackBy: trackByName"
+          class="workspace-list-row top-item"
+        >
+          <div>
+            <strong>{{ product.name }}</strong>
+            <small>Margem {{ product.margin }}</small>
+          </div>
+          <span>{{ product.revenue }}</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="workspace-panel">
+      <div class="workspace-panel-header">
+        <div>
+          <span class="workspace-eyebrow">Canais</span>
+          <h2 class="workspace-panel-title">Origem das vendas</h2>
+        </div>
+      </div>
+
+      <div class="chart-list">
+        <div *ngFor="let item of channelChart; trackBy: trackByLabel" class="chart-item">
+          <div class="workspace-list-row">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+          <div class="workspace-bar chart-bar">
+            <span [ngClass]="item.tone" [style.width.%]="item.percent"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="workspace-panel cash-panel">
+      <div class="workspace-panel-header">
+        <div>
+          <span class="workspace-eyebrow">Caixa</span>
+          <h2 class="workspace-panel-title">Fluxo semanal</h2>
+        </div>
+      </div>
+
+      <div class="workspace-table cash-table" role="table" aria-label="Fluxo de caixa semanal">
+        <div class="workspace-table-row workspace-table-head" role="row">
+          <span role="columnheader">Semana</span>
+          <span role="columnheader">Entradas</span>
+          <span role="columnheader">Saídas</span>
+          <span role="columnheader">Saldo</span>
+        </div>
+
+        <div
+          *ngFor="let line of cashFlow; trackBy: trackByLabel"
+          class="workspace-table-row"
+          role="row"
+        >
+          <span>{{ line.label }}</span>
+          <span>{{ line.incoming }}</span>
+          <span>{{ line.outgoing }}</span>
+          <strong>{{ line.balance }}</strong>
+        </div>
+      </div>
+    </article>
+  </section>
+</app-shell>

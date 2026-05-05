@@ -1,0 +1,67 @@
+<div class="login-page">
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>Controle<br />absoluto<br />sobre seus<br />lucros.</h1>
+
+      <p>
+        A plataforma focada no seu negócio. Gerencie ingredientes,
+        calcule o custo real e precifique sem medo de errar.
+      </p>
+
+      <!-- <div class="stats">
+        <div class="stat-card">
+          <strong>10k+</strong>
+          <span>Empreendedores<br />ativos</span>
+        </div>
+
+        <div class="stat-card disabled">
+          <strong>R$ 2M+</strong>
+          <span>Lucro gerado<br />este ano</span>
+        </div>
+      </div> -->
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="login-card">
+      <div class="brand">
+        <div class="logo">M</div>
+        <span>MeuPreço</span>
+      </div>
+
+      <h2>Bem-vindo de volta!</h2>
+      <p class="subtitle">Faça login na sua conta para continuar.</p>
+
+      <form (submit)="onSubmit($event)">
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            autocomplete="email"
+            placeholder="maria@email.com"
+          />
+        </div>
+
+        <div class="form-header">
+          <label for="password">Senha</label>
+          <a routerLink="/esqueci-senha">Esqueceu a senha?</a>
+        </div>
+
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="••••••••"
+        />
+
+        <button type="submit">Entrar na Plataforma</button>
+      </form>
+
+      <p class="register">
+        Ainda não tem conta?
+        <a routerLink="/cadastro">Cadastre-se</a>
+      </p>
+    </div>
+  </section>
+</div>
