@@ -1,8 +1,8 @@
 using System.Reflection;
-using WebApp.Pricing.Calculator.Domain.Common;
+using Domain.Common;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Infrastructure.DI.Shared;
+namespace Infrastructure.DI;
 
 public static class Container
 {
@@ -38,7 +38,7 @@ public static class Container
                         .Where(i => !markerInterfaces.Contains(i));
 
                     // 1. Registra o tipo concreto primeiro, garantindo que seja registrado apenas uma vez
-                    if (!services.Any(service => service.ServiceType == type))
+                    if (services.All(service => service.ServiceType != type))
                     {
                         if (isScoped) services.AddScoped(type);
                         else if (isTransient) services.AddTransient(type);

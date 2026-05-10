@@ -1,3 +1,5 @@
+using Domain.Users;
+using Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
@@ -8,7 +10,8 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<WebApp.Pricing.Calculator.Domain.Users.User> Users { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

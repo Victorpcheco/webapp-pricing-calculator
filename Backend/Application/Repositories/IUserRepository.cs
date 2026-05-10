@@ -1,6 +1,6 @@
-using WebApp.Pricing.Calculator.Domain.Users;
+using Domain.Users;
 
-namespace WebApp.Pricing.Calculator.Application.Repositories;
+namespace Application.Repositories;
 
 public interface IUserRepository
 {

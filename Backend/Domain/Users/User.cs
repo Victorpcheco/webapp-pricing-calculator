@@ -1,6 +1,6 @@
-using WebApp.Pricing.Calculator.Domain.Common;
+using Domain.Common;
 
-namespace WebApp.Pricing.Calculator.Domain.Users;
+namespace Domain.Users;
 
 public class User
 {
@@ -12,9 +12,22 @@ public class User
 
     private User() { }
 
-    public static User Create(string name, string phone, string email, string passwordHash)
+    public static Result<User> Create(string name, string phone, string email, string passwordHash)
     {
-        return new User
+        if (string.IsNullOrWhiteSpace(name) || 
+            string.IsNullOrWhiteSpace(phone) || 
+            string.IsNullOrWhiteSpace(email) || 
+            string.IsNullOrWhiteSpace(passwordHash))
+        {
+            return Result<User>.Failure("Dados inválidos");
+        }
+
+        if (!email.Contains("@") || !email.Contains("."))
+        {
+            return Result<User>.Failure("E-mail inválido");
+        }
+
+        var user = new User
         {
             Id = Guid.NewGuid(),
             Name = name,
@@ -22,5 +35,7 @@ public class User
             Email = email,
             PasswordHash = passwordHash
         };
+
+        return Result<User>.Success(user);
     }
 }

@@ -1,14 +1,16 @@
+using Application.Repositories;
+using Domain.Common;
+using Domain.Users;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using WebApp.Pricing.Calculator.Application.Repositories;
-using WebApp.Pricing.Calculator.Domain.Users;
 
-namespace WebApp.Pricing.Calculator.Infrastructure.Persistence.Repositories;
+namespace Infrastructure.Persistence.Repositories;
 
 public class UserRepository : IUserRepository, IScopedService
 {
-    private readonly global::Infrastructure.Data.AppDbContext _context;
+    private readonly AppDbContext _context;
 
-    public UserRepository(global::Infrastructure.Data.AppDbContext context)
+    public UserRepository(AppDbContext context)
     {
         _context = context;
     }
