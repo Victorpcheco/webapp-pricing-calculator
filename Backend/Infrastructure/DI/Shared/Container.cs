@@ -1,5 +1,5 @@
 using System.Reflection;
-using Infrastructure.DI.Shared.Abstractions;
+using WebApp.Pricing.Calculator.Domain.Common;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.DI.Shared;

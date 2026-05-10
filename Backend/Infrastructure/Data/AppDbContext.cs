@@ -8,6 +8,8 @@ public class AppDbContext : DbContext
     {
     }
 
+    public DbSet<WebApp.Pricing.Calculator.Domain.Users.User> Users { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
