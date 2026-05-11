@@ -3,7 +3,7 @@ using Application.Common;
 using Application.Repositories;
 using Domain.Common;
 using Domain.Users;
-using Domain.Users.Events;
+using Domain.Entities.Users.Events;
 
 namespace Application.Authentication.Services;
 
@@ -28,52 +28,52 @@ public class AuthenticationService : IScopedService
 
     public async Task<Result<Guid>> RegisterAsync(RegisterUserCommand command, CancellationToken cancellationToken = default)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
-        if (existingUser != null)
+        var usuarioExistente = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
+        if (usuarioExistente != null)
         {
             return Result<Guid>.Failure("Email já está em uso");
         }
 
-        if (string.IsNullOrWhiteSpace(command.Password))
+        if (string.IsNullOrWhiteSpace(command.SenhaHash))
         {
             return Result<Guid>.Failure("Dados inválidos");
         }
 
-        var passwordHash = _passwordHasher.Hash(command.Password);
+        var senhaHash = _passwordHasher.Hash(command.SenhaHash);
 
-        var userResult = User.Create(command.Name, command.Phone, command.Email, passwordHash);
+        var userResult = User.Create(command.Nome, command.Telefone, command.Email, senhaHash);
         if (userResult.IsFailure)
         {
             return Result<Guid>.Failure(userResult.Error);
         }
 
-        var user = userResult.Value;
+        var usuario = userResult.Value;
         
-        await _userRepository.AddAsync(user, cancellationToken);
-        await _eventPublisher.PublishAsync(new UsuarioRegistradoEvent(user.Id, user.Email), cancellationToken);
+        await _userRepository.AddAsync(usuario, cancellationToken);
+        await _eventPublisher.PublishAsync(new UsuarioRegistradoEvent(usuario.Id, usuario.Email), cancellationToken);
 
-        return Result<Guid>.Success(user.Id);
+        return Result<Guid>.Success(usuario.Id);
     }
 
     public async Task<Result<AuthenticationResult>> LoginAsync(LoginCommand command, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
-        if (user == null)
+        var usuario = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
+        if (usuario == null)
         {
             await _eventPublisher.PublishAsync(new FalhaLoginUsuarioEvent(command.Email, "Usuário ou senha inválidos"), cancellationToken);
             return Result<AuthenticationResult>.Failure("Usuário ou senha inválidos");
         }
 
-        var isPasswordValid = _passwordHasher.Verify(command.Password, user.PasswordHash);
+        var isPasswordValid = _passwordHasher.Verify(command.SenhaHash, usuario.SenhaHash);
         if (!isPasswordValid)
         {
             await _eventPublisher.PublishAsync(new FalhaLoginUsuarioEvent(command.Email, "Usuário ou senha inválidos"), cancellationToken);
             return Result<AuthenticationResult>.Failure("Usuário ou senha inválidos");
         }
 
-        var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Email);
-        await _eventPublisher.PublishAsync(new UsuarioLogadoEvent(user.Id, user.Email), cancellationToken);
+        var token = _jwtTokenGenerator.GenerateToken(usuario.Id, usuario.Email);
+        await _eventPublisher.PublishAsync(new UsuarioLogadoEvent(usuario.Id, usuario.Email), cancellationToken);
 
-        return Result<AuthenticationResult>.Success(new AuthenticationResult(user.Id, token));
+        return Result<AuthenticationResult>.Success(new AuthenticationResult(usuario.Id, token));
     }
 }

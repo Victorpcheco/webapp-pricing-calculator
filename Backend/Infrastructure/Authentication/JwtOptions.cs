@@ -1,6 +1,6 @@
-namespace WebApp.Pricing.Calculator.Infrastructure.Authentication;
+namespace Infrastructure.Authentication;
 
-public class JwtOptions
+public sealed class JwtOptions
 {
     public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;

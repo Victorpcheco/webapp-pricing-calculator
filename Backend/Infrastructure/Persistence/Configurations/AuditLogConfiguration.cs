@@ -1,4 +1,4 @@
-using Infrastructure.Persistence.Entities;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,12 +10,9 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
     {
         builder.ToTable("AuditLogs");
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.ServiceName).IsRequired().HasMaxLength(100);
-        builder.Property(x => x.EventName).IsRequired().HasMaxLength(150);
-        
-        // Dados estruturados jsonb
-        builder.Property(x => x.EventData).HasColumnType("jsonb").IsRequired();
-        
-        builder.Property(x => x.CreatedAt).IsRequired();
+        builder.Property(x => x.NomeServico).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.NomeEvento).IsRequired().HasMaxLength(150);
+        builder.Property(x => x.DadosEvento).HasColumnType("jsonb").IsRequired();
+        builder.Property(x => x.DataCriacao).IsRequired();
     }
 }

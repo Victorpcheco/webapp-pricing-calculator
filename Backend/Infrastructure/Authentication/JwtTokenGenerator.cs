@@ -6,9 +6,9 @@ using Domain.Common;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace WebApp.Pricing.Calculator.Infrastructure.Authentication;
+namespace Infrastructure.Authentication;
 
-public class JwtTokenGenerator : IJwtTokenGenerator, IScopedService
+public sealed class JwtTokenGenerator : IJwtTokenGenerator, IScopedService
 {
     private readonly JwtOptions _jwtOptions;
 

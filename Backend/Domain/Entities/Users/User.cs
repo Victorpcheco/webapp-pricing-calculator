@@ -14,7 +14,6 @@ public class User
 
     public static Result<User> Create(string nome, string telefone, string email, string senhaHash)
     {
-
         try {
             ValidateCreate(nome, telefone, email, senhaHash);
         }

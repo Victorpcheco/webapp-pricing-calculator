@@ -10,7 +10,7 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AutoInjectAll();
 
-builder.Services.Configure<WebApp.Pricing.Calculator.Infrastructure.Authentication.JwtOptions>(
+builder.Services.Configure<Infrastructure.Authentication.JwtOptions>(
     builder.Configuration.GetSection("JwtOptions"));
 
 var app = builder.Build();

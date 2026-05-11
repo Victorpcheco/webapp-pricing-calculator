@@ -12,7 +12,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         
         builder.HasKey(x => x.Id);
         
-        builder.Property(x => x.Name)
+        builder.Property(x => x.Nome)
             .IsRequired()
             .HasMaxLength(100);
             
@@ -23,10 +23,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Email)
             .IsUnique();
             
-        builder.Property(x => x.Phone)
+        builder.Property(x => x.Telefone)
             .HasMaxLength(20);
             
-        builder.Property(x => x.PasswordHash)
+        builder.Property(x => x.SenhaHash)
             .IsRequired();
     }
 }

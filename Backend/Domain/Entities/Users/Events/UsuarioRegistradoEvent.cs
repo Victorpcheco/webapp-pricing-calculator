@@ -1,5 +1,5 @@
-using Domain.Common;
+namespace Domain.Entities.Users.Events;
 
-namespace Domain.Users.Events;
+using Domain.Common;
 
 public record UsuarioRegistradoEvent(Guid UserId, string Email) : IDomainEvent;

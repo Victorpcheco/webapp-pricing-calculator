@@ -1,9 +1,9 @@
 using Application.Authentication.Services;
 using Domain.Common;
 
-namespace WebApp.Pricing.Calculator.Infrastructure.Authentication;
+namespace Infrastructure.Authentication;
 
-public class PasswordHasher : IPasswordHasher, IScopedService
+public sealed class PasswordHasher : IPasswordHasher, IScopedService
 {
     public string Hash(string password)
     {
