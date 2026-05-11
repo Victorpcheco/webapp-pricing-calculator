@@ -5,6 +5,7 @@ using Infrastructure.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.TraversePath().Load();
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AutoInjectAll();

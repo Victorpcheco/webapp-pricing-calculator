@@ -8,9 +8,24 @@ public static class Container
 {
         public static IServiceCollection AutoInjectAll(this IServiceCollection services)
         {
-            // Pega todos os assemblies carregados
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            
+            // Pega todos os assemblies carregados e carrega os dlls da pasta bin
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).ToArray();
+
+            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
+            foreach (var path in referencedPaths)
+            {
+                if (!loadedPaths.Contains(path, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    try
+                    {
+                        loadedAssemblies.Add(Assembly.LoadFrom(path));
+                    }
+                    catch { /* Ignora dlls não carregáveis */ }
+                }
+            }
+
+            var assemblies = loadedAssemblies;
             // Interfaces de marcação que devemos ignorar no registro
             var markerInterfaces = new[] 
             { 

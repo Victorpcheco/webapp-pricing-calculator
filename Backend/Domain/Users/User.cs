@@ -5,37 +5,51 @@ namespace Domain.Users;
 public class User
 {
     public Guid Id { get; private set; }
-    public string Name { get; private set; } = string.Empty;
+    public string Nome { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
-    public string Phone { get; private set; } = string.Empty;
-    public string PasswordHash { get; private set; } = string.Empty;
+    public string Telefone { get; private set; } = string.Empty;
+    public string SenhaHash { get; private set; } = string.Empty;
 
     private User() { }
 
-    public static Result<User> Create(string name, string phone, string email, string passwordHash)
+    public static Result<User> Create(string nome, string telefone, string email, string senhaHash)
     {
-        if (string.IsNullOrWhiteSpace(name) || 
-            string.IsNullOrWhiteSpace(phone) || 
-            string.IsNullOrWhiteSpace(email) || 
-            string.IsNullOrWhiteSpace(passwordHash))
-        {
-            return Result<User>.Failure("Dados inválidos");
-        }
 
-        if (!email.Contains("@") || !email.Contains("."))
+        try {
+            ValidateCreate(nome, telefone, email, senhaHash);
+        }
+        catch (Exception ex)
         {
-            return Result<User>.Failure("E-mail inválido");
+            return Result<User>.Failure(ex.Message);
         }
 
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Name = name,
-            Phone = phone,
+            Nome = nome,
+            Telefone = telefone,
             Email = email,
-            PasswordHash = passwordHash
+            SenhaHash = senhaHash
         };
 
         return Result<User>.Success(user);
+    }
+
+    private static void ValidateCreate(string nome, string telefone, string email, string senhaHash)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new ArgumentException("Nome é obrigatório", nameof(nome));
+        
+        if (string.IsNullOrWhiteSpace(telefone))
+            throw new ArgumentException("Telefone é obrigatório", nameof(telefone));
+        
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("E-mail é obrigatório", nameof(email));
+        
+        if (string.IsNullOrWhiteSpace(senhaHash))
+            throw new ArgumentException("Senha é obrigatória", nameof(senhaHash));
+        
+        if (!email.Contains("@") || !email.Contains("."))
+            throw new ArgumentException("E-mail inválido", nameof(email));
     }
 }
