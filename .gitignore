@@ -38,6 +38,7 @@ bld/
 *.user
 *.suo
 *.sln.docstates
+*Migrations
 
 ## --- PACOTES E ARTEFATOS ---
 *.nupkg
@@ -46,6 +47,7 @@ packages/
 !packages/build/
 project.lock.json
 artifacts/
+
 
 ## --- SEGURANÇA E AMBIENTE --- 
 .env
