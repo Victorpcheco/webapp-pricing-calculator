@@ -32,12 +32,13 @@
       <h2>Bem-vindo de volta!</h2>
       <p class="subtitle">Faça login na sua conta para continuar.</p>
 
-      <form (submit)="onSubmit($event)">
+      <form [formGroup]="loginForm" (submit)="onSubmit($event)">
         <div class="form-group">
           <label for="email">E-mail</label>
           <input
             id="email"
             type="email"
+            formControlName="email"
             autocomplete="email"
             placeholder="maria@email.com"
           />
@@ -51,11 +52,18 @@
         <input
           id="password"
           type="password"
+          formControlName="password"
           autocomplete="current-password"
           placeholder="••••••••"
         />
 
-        <button type="submit">Entrar na Plataforma</button>
+        @if (errorMessage) {
+          <div class="error-message" style="color: #ef4444; margin-top: 0.5rem; font-size: 0.875rem;">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <button type="submit" [disabled]="loginForm.invalid">Entrar na Plataforma</button>
       </form>
 
       <p class="register">
