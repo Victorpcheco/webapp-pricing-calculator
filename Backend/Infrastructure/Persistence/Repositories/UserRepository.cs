@@ -1,6 +1,6 @@
 using Application.Repositories;
 using Domain.Common;
-using Domain.Users;
+using Domain.Entities.Users;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

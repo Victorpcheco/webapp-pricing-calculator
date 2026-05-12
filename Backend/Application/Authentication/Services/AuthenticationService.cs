@@ -2,7 +2,7 @@ using Application.Authentication.Commands;
 using Application.Common;
 using Application.Repositories;
 using Domain.Common;
-using Domain.Users;
+using Domain.Entities.Users;
 using Domain.Entities.Users.Events;
 
 namespace Application.Authentication.Services;

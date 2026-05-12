@@ -2,8 +2,8 @@ using Application.Authentication.Commands;
 using Application.Authentication.Services;
 using Application.Common;
 using Application.Repositories;
-using Domain.Users;
-using Domain.Users.Events;
+using Domain.Entities.Users;
+using Domain.Entities.Users.Events;
 using FluentAssertions;
 using Moq;
 
@@ -38,7 +38,7 @@ public class AuthenticationServiceTests
         var command = new RegisterUserCommand("John Doe", "1234567890", "john@example.com", "P@ssword123");
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
-        _passwordHasherMock.Setup(x => x.Hash(command.Password))
+        _passwordHasherMock.Setup(x => x.Hash(command.SenhaHash))
             .Returns("hashed_password");
 
         // Act
@@ -50,8 +50,8 @@ public class AuthenticationServiceTests
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.Is<User>(u => 
             u.Email == command.Email && 
-            u.Name == command.Name &&
-            u.PasswordHash == "hashed_password"), It.IsAny<CancellationToken>()), Times.Once);
+            u.Nome == command.Nome &&
+            u.SenhaHash == "hashed_password"), It.IsAny<CancellationToken>()), Times.Once);
 
         _eventPublisherMock.Verify(x => x.PublishAsync(It.Is<UsuarioRegistradoEvent>(e => 
             e.Email == command.Email && 
@@ -106,7 +106,7 @@ public class AuthenticationServiceTests
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         
-        _passwordHasherMock.Setup(x => x.Verify(command.Password, user.PasswordHash))
+        _passwordHasherMock.Setup(x => x.Verify(command.SenhaHash, user.SenhaHash))
             .Returns(true);
             
         _jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user.Id, user.Email))
@@ -128,13 +128,13 @@ public class AuthenticationServiceTests
     public async Task Login_ComSenhaInvalida_DeveRetornarFalhaEPublicarEventoDeFalha()
     {
         // Arrange
-        var command = new LoginCommand("john@example.com", "WrongPassword");
+        var command = new LoginCommand("john@example.com", "WrongSenha");
         var user = User.Create("John", "123", "john@example.com", "hashed_password").Value;
         
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
             
-        _passwordHasherMock.Setup(x => x.Verify(command.Password, user.PasswordHash))
+        _passwordHasherMock.Setup(x => x.Verify(command.SenhaHash, user.SenhaHash))
             .Returns(false);
 
         // Act
@@ -170,13 +170,13 @@ public class AuthenticationServiceTests
     public async Task Seguranca_LogsDeAuditoria_NaoDevemConterSenhaEmTextoPlano()
     {
         // Arrange
-        var command = new LoginCommand("john@example.com", "MySuperSecretPassword");
+        var command = new LoginCommand("john@example.com", "MySuperSecretSenha");
         var user = User.Create("John", "123", "john@example.com", "hashed_password").Value;
         
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
             
-        _passwordHasherMock.Setup(x => x.Verify(command.Password, user.PasswordHash))
+        _passwordHasherMock.Setup(x => x.Verify(command.SenhaHash, user.SenhaHash))
             .Returns(false);
 
         // Act
@@ -184,7 +184,7 @@ public class AuthenticationServiceTests
 
         // Assert
         _eventPublisherMock.Verify(x => x.PublishAsync(It.Is<FalhaLoginUsuarioEvent>(e => 
-            e.Reason.Contains(command.Password)), It.IsAny<CancellationToken>()), Times.Never, 
+            e.Motivo.Contains(command.SenhaHash)), It.IsAny<CancellationToken>()), Times.Never, 
             "The audit event MUST NOT contain the plaintext password");
     }
 }

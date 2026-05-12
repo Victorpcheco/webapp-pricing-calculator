@@ -1,6 +1,6 @@
 using Domain.Common;
 
-namespace Domain.Users;
+namespace Domain.Entities.Users;
 
 public class User
 {
