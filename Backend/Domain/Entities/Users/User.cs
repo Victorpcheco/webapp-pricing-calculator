@@ -41,12 +41,18 @@ public class User
         
         if (string.IsNullOrWhiteSpace(telefone))
             throw new ArgumentException("Telefone é obrigatório", nameof(telefone));
+
+        if (telefone.Length < 10 || telefone.Length > 15)
+            throw new ArgumentException("O telefone deve ter entre 10 e 15 caracteres", nameof(telefone));
         
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("E-mail é obrigatório", nameof(email));
         
         if (string.IsNullOrWhiteSpace(senhaHash))
             throw new ArgumentException("Senha é obrigatória", nameof(senhaHash));
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(senhaHash, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+            throw new ArgumentException("A senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais", nameof(senhaHash));
         
         if (!email.Contains("@") || !email.Contains("."))
             throw new ArgumentException("E-mail inválido", nameof(email));
