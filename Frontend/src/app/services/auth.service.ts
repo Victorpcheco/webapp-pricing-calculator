@@ -19,6 +19,16 @@ export interface AuthenticationResult {
   token: string;
 }
 
+export interface RequestPasswordResetCommand {
+  email: string;
+}
+
+export interface ResetPasswordCommand {
+  email: string;
+  token: string;
+  novaSenha: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,6 +44,14 @@ export class AuthService {
 
   register(command: RegisterUserCommand): Observable<{ userId: string }> {
     return this.http.post<{ userId: string }>(`${this.apiUrl}/register`, command);
+  }
+
+  requestPasswordReset(command: RequestPasswordResetCommand): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/forgot-password`, command);
+  }
+
+  resetPassword(command: ResetPasswordCommand): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/reset-password`, command);
   }
 
   setToken(token: string) {
