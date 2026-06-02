@@ -57,4 +57,12 @@ public class User
         if (!email.Contains("@") || !email.Contains("."))
             throw new ArgumentException("E-mail inválido", nameof(email));
     }
+
+    public void UpdatePassword(string newSenhaHash)
+    {
+        if (string.IsNullOrWhiteSpace(newSenhaHash))
+            throw new ArgumentException("A nova senha é obrigatória", nameof(newSenhaHash));
+
+        SenhaHash = newSenhaHash;
+    }
 }

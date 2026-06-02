@@ -21,5 +21,17 @@ public static class AuthenticationEndpoints
             var result = await authService.LoginAsync(command, cancellationToken);
             return result.IsFailure ? Results.BadRequest(new { Error = result.Error }) : Results.Ok(result.Value);
         });
+
+        group.MapPost("forgot-password", async ([FromBody] RequestPasswordResetCommand command, [FromServices] ForgotPasswordService forgotPasswordService, CancellationToken cancellationToken) =>
+        {
+            var result = await forgotPasswordService.RequestPasswordResetAsync(command, cancellationToken);
+            return result.IsFailure ? Results.BadRequest(new { Error = result.Error }) : Results.Ok();
+        });
+
+        group.MapPost("reset-password", async ([FromBody] ResetPasswordCommand command, [FromServices] ForgotPasswordService forgotPasswordService, CancellationToken cancellationToken) =>
+        {
+            var result = await forgotPasswordService.ResetPasswordAsync(command, cancellationToken);
+            return result.IsFailure ? Results.BadRequest(new { Error = result.Error }) : Results.Ok();
+        });
     }
 }

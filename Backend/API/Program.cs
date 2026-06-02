@@ -10,9 +10,13 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AutoInjectAll();
+builder.Services.AddMemoryCache();
 
 builder.Services.Configure<Infrastructure.Authentication.JwtOptions>(
     builder.Configuration.GetSection("JwtOptions"));
+
+builder.Services.Configure<Infrastructure.Notifications.EmailOptions>(
+    builder.Configuration.GetSection("EmailOptions"));
 
 builder.Services.AddFrontendCors();
 var app = builder.Build();
