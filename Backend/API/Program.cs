@@ -5,6 +5,7 @@ using API.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.TraversePath().Load();
+
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddControllersConfiguration();
