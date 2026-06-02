@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -14,34 +15,38 @@ export class RegisterComponent {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly toastService = inject(ToastService);
 
   registerForm = this.fb.nonNullable.group({
     nome: ['', [Validators.required]],
-    telefone: ['', [Validators.required]],
+    telefone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/)]],
     confirmPassword: ['', [Validators.required]]
   });
 
-  errorMessage = '';
+  isSubmitting = false;
 
   onSubmit(event: Event) {
     event.preventDefault();
 
     if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
       return;
     }
 
     const { nome, telefone, email, password, confirmPassword } = this.registerForm.getRawValue();
 
     if (password !== confirmPassword) {
-      this.errorMessage = 'As senhas não coincidem';
+      this.toastService.showError('As senhas não coincidem');
       return;
     }
 
+    this.isSubmitting = true;
+
     this.authService.register({ nome, telefone, email, senhaHash: password }).subscribe({
       next: () => {
-        // Automatically login or navigate to login
+        this.toastService.showSuccess('Cadastro realizado com sucesso!');
         this.authService.login({ email, senhaHash: password }).subscribe({
           next: () => {
             void this.router.navigate(['/dashboard']);
@@ -52,7 +57,8 @@ export class RegisterComponent {
         });
       },
       error: (err) => {
-        this.errorMessage = err.error?.error || 'Erro ao realizar cadastro';
+        this.isSubmitting = false;
+        this.toastService.showError(err.error?.error || 'Erro ao realizar cadastro');
       }
     });
   }

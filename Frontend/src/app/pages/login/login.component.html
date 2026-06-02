@@ -42,28 +42,32 @@
             autocomplete="email"
             placeholder="maria@email.com"
           />
+          @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
+            <span class="validation-error">E-mail inválido</span>
+          }
         </div>
 
-        <div class="form-header">
-          <label for="password">Senha</label>
-          <a routerLink="/esqueci-senha">Esqueceu a senha?</a>
-        </div>
-
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          autocomplete="current-password"
-          placeholder="••••••••"
-        />
-
-        @if (errorMessage) {
-          <div class="error-message" style="color: #ef4444; margin-top: 0.5rem; font-size: 0.875rem;">
-            {{ errorMessage }}
+        <div class="form-group">
+          <div class="form-header">
+            <label for="password">Senha</label>
+            <a routerLink="/esqueci-senha">Esqueceu a senha?</a>
           </div>
-        }
 
-        <button type="submit" [disabled]="loginForm.invalid">Entrar na Plataforma</button>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+          />
+          @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty || loginForm.get('password')?.touched)) {
+            <span class="validation-error">Senha é obrigatória</span>
+          }
+        </div>
+
+        <button type="submit" [disabled]="loginForm.invalid || isSubmitting">
+          {{ isSubmitting ? 'Entrando...' : 'Entrar na Plataforma' }}
+        </button>
       </form>
 
       <p class="register">
