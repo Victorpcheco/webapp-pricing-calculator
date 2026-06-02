@@ -30,6 +30,9 @@
             autocomplete="name"
             placeholder="Maria Silva"
           />
+          @if (registerForm.get('nome')?.invalid && (registerForm.get('nome')?.dirty || registerForm.get('nome')?.touched)) {
+            <span class="validation-error">Nome é obrigatório</span>
+          }
         </div>
 
         <div class="form-group">
@@ -41,6 +44,13 @@
             autocomplete="tel"
             placeholder="(11) 99999-9999"
           />
+          @if (registerForm.get('telefone')?.invalid && (registerForm.get('telefone')?.dirty || registerForm.get('telefone')?.touched)) {
+            @if (registerForm.get('telefone')?.hasError('required')) {
+              <span class="validation-error">Telefone é obrigatório</span>
+            } @else {
+              <span class="validation-error">O telefone deve ter entre 10 e 15 caracteres</span>
+            }
+          }
         </div>
 
         <div class="form-group">
@@ -52,6 +62,9 @@
             autocomplete="email"
             placeholder="maria@email.com"
           />
+          @if (registerForm.get('email')?.invalid && (registerForm.get('email')?.dirty || registerForm.get('email')?.touched)) {
+            <span class="validation-error">E-mail inválido</span>
+          }
         </div>
 
         <div class="form-group">
@@ -63,6 +76,13 @@
             autocomplete="new-password"
             placeholder="••••••••"
           />
+          @if (registerForm.get('password')?.invalid && (registerForm.get('password')?.dirty || registerForm.get('password')?.touched)) {
+            @if (registerForm.get('password')?.hasError('required')) {
+              <span class="validation-error">Senha é obrigatória</span>
+            } @else if (registerForm.get('password')?.hasError('pattern')) {
+              <span class="validation-error">A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.</span>
+            }
+          }
         </div>
 
         <div class="form-group last">
@@ -76,13 +96,9 @@
           />
         </div>
 
-        @if (errorMessage) {
-          <div class="error-message" style="color: #ef4444; margin-bottom: 1rem; font-size: 0.875rem;">
-            {{ errorMessage }}
-          </div>
-        }
-
-        <button type="submit" [disabled]="registerForm.invalid">Criar Conta</button>
+        <button type="submit" [disabled]="registerForm.invalid || isSubmitting">
+          {{ isSubmitting ? 'Cadastrando...' : 'Criar Conta' }}
+        </button>
       </form>
 
       <p class="auth-link">

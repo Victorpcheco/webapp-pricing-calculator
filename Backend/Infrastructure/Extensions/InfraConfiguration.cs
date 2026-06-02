@@ -17,11 +17,19 @@ public static class InfraConfiguration
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+        var password = Environment.GetEnvironmentVariable("password");
+        var host = Environment.GetEnvironmentVariable("host");
+        var port = Environment.GetEnvironmentVariable("port");
+        var database = Environment.GetEnvironmentVariable("database");
+        var username = Environment.GetEnvironmentVariable("username");
 
         // Monta a connection string final com a senha do ambiente
         var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder(connectionString)
         {
+            Username = username,
+            Host = host,
+            Port = int.Parse(port),
+            Database = database,
             Password = password
         };
 

@@ -268,3 +268,20 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Auth Validation Styles */
+input.ng-invalid.ng-touched,
+input.ng-invalid.ng-dirty {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12) !important;
+}
+
+.validation-error {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

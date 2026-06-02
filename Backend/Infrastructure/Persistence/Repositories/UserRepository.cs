@@ -25,4 +25,10 @@ public class UserRepository : IUserRepository, IScopedService
     {
         return await _context.Usuarios.SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
+
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        _context.Usuarios.Update(user);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

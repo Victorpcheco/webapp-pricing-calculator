@@ -8,6 +8,7 @@ import { ProductCreateComponent } from './pages/product-create/product-create.co
 import { ProductsComponent } from './pages/products/products.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ReportsComponent } from './pages/reports/reports.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 
 export const routes: Routes = [
   {
@@ -21,6 +22,10 @@ export const routes: Routes = [
   {
     path: 'esqueci-senha',
     component: ForgotPasswordComponent
+  },
+  {
+    path: 'redefinir-senha',
+    component: ResetPasswordComponent
   },
   {
     path: 'dashboard',
