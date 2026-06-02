@@ -39,7 +39,7 @@ public class AuthenticationServiceTests
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
         _passwordHasherMock.Setup(x => x.Hash(command.SenhaHash))
-            .Returns("hashed_password");
+            .Returns("Hashed_p@ssw0rd1!");
 
         // Act
         var result = await _sut.RegisterAsync(command);
@@ -51,7 +51,7 @@ public class AuthenticationServiceTests
         _userRepositoryMock.Verify(x => x.AddAsync(It.Is<User>(u => 
             u.Email == command.Email && 
             u.Nome == command.Nome &&
-            u.SenhaHash == "hashed_password"), It.IsAny<CancellationToken>()), Times.Once);
+            u.SenhaHash == "Hashed_p@ssw0rd1!"), It.IsAny<CancellationToken>()), Times.Once);
 
         _eventPublisherMock.Verify(x => x.PublishAsync(It.Is<UsuarioRegistradoEvent>(e => 
             e.Email == command.Email && 
@@ -82,7 +82,7 @@ public class AuthenticationServiceTests
     {
         // Arrange
         var command = new RegisterUserCommand("John", "123", "existing@example.com", "P@ssword123");
-        var existingUser = User.Create("Existing", "123", "existing@example.com", "hash").Value;
+        var existingUser = User.Create("Existing", "1234567890", "existing@example.com", "Hashed_p@ssw0rd1!").Value;
         
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
@@ -101,7 +101,7 @@ public class AuthenticationServiceTests
     {
         // Arrange
         var command = new LoginCommand("john@example.com", "P@ssword123");
-        var user = User.Create("John", "123", "john@example.com", "hashed_password").Value;
+        var user = User.Create("John", "1234567890", "john@example.com", "Hashed_p@ssw0rd1!").Value;
         
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
@@ -129,7 +129,7 @@ public class AuthenticationServiceTests
     {
         // Arrange
         var command = new LoginCommand("john@example.com", "WrongSenha");
-        var user = User.Create("John", "123", "john@example.com", "hashed_password").Value;
+        var user = User.Create("John", "1234567890", "john@example.com", "Hashed_p@ssw0rd1!").Value;
         
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
@@ -171,7 +171,7 @@ public class AuthenticationServiceTests
     {
         // Arrange
         var command = new LoginCommand("john@example.com", "MySuperSecretSenha");
-        var user = User.Create("John", "123", "john@example.com", "hashed_password").Value;
+        var user = User.Create("John", "1234567890", "john@example.com", "Hashed_p@ssw0rd1!").Value;
         
         _userRepositoryMock.Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);

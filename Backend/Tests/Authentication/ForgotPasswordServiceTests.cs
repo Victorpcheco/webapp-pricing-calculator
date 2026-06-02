@@ -5,6 +5,8 @@ using Application.Repositories;
 using Domain.Entities.Users;
 using FluentAssertions;
 using Moq;
+using Domain.Common;
+using Domain.Entities.Users.Events;
 
 namespace Tests.Authentication;
 
@@ -14,6 +16,7 @@ public class ForgotPasswordServiceTests
     private readonly Mock<IPasswordHasher> _passwordHasherMock;
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IPasswordResetTokenService> _tokenServiceMock;
+    private readonly Mock<IEventPublisher> _eventPublisherMock;
     private readonly ForgotPasswordService _sut;
 
     public ForgotPasswordServiceTests()
@@ -22,12 +25,14 @@ public class ForgotPasswordServiceTests
         _passwordHasherMock = new Mock<IPasswordHasher>();
         _emailServiceMock = new Mock<IEmailService>();
         _tokenServiceMock = new Mock<IPasswordResetTokenService>();
+        _eventPublisherMock = new Mock<IEventPublisher>();
 
         _sut = new ForgotPasswordService(
             _userRepositoryMock.Object,
             _passwordHasherMock.Object,
             _emailServiceMock.Object,
-            _tokenServiceMock.Object);
+            _tokenServiceMock.Object,
+            _eventPublisherMock.Object);
     }
 
     [Fact]
@@ -52,6 +57,7 @@ public class ForgotPasswordServiceTests
 
         _tokenServiceMock.Verify(x => x.GenerateTokenAsync(user.Id, It.IsAny<CancellationToken>()), Times.Once);
         _emailServiceMock.Verify(x => x.SendPasswordResetEmailAsync(user.Email, token, It.IsAny<CancellationToken>()), Times.Once);
+        _eventPublisherMock.Verify(x => x.PublishAsync(It.Is<SenhaResetSolicitadoEvent>(e => e.Email == user.Email), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -72,6 +78,7 @@ public class ForgotPasswordServiceTests
 
         _tokenServiceMock.Verify(x => x.GenerateTokenAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         _emailServiceMock.Verify(x => x.SendPasswordResetEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventPublisherMock.Verify(x => x.PublishAsync(It.IsAny<FalhaResetSenhaEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -100,6 +107,7 @@ public class ForgotPasswordServiceTests
         _userRepositoryMock.Verify(x => x.UpdateAsync(It.Is<User>(u => 
             u.Id == user.Id && 
             u.SenhaHash == hashedNewPassword), It.IsAny<CancellationToken>()), Times.Once);
+        _eventPublisherMock.Verify(x => x.PublishAsync(It.Is<SenhaResetConcluidoEvent>(e => e.UserId == user.Id && e.Email == user.Email), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -123,6 +131,7 @@ public class ForgotPasswordServiceTests
         result.Error.Should().NotBeNullOrEmpty();
 
         _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventPublisherMock.Verify(x => x.PublishAsync(It.IsAny<FalhaResetSenhaEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -146,5 +155,6 @@ public class ForgotPasswordServiceTests
         result.Error.Should().ContainEquivalentOf("expirado");
 
         _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventPublisherMock.Verify(x => x.PublishAsync(It.IsAny<FalhaResetSenhaEvent>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
