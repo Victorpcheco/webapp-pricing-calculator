@@ -9,6 +9,8 @@ DotNetEnv.Env.TraversePath().Load();
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddControllersConfiguration();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AutoInjectAll();
 builder.Services.AddMemoryCache();
@@ -21,6 +23,12 @@ builder.Services.Configure<Infrastructure.Notifications.EmailOptions>(
 
 builder.Services.AddFrontendCors();
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseFrontendCors();
