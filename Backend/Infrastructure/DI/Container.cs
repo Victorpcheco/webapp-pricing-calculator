@@ -12,7 +12,10 @@ public static class Container
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
             var loadedPaths = loadedAssemblies.Where(a => !a.IsDynamic).Select(a => a.Location).ToArray();
 
-            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
+            var projectPrefixes = new[] { "API.", "Application.", "Domain.", "Infrastructure." };
+            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
+                .Where(path => projectPrefixes.Any(prefix => Path.GetFileName(path).StartsWith(prefix) || Path.GetFileName(path) == prefix.TrimEnd('.') + ".dll"))
+                .ToArray();
             foreach (var path in referencedPaths)
             {
                 if (!loadedPaths.Contains(path, StringComparer.InvariantCultureIgnoreCase))
@@ -36,7 +39,17 @@ public static class Container
 
             foreach(Assembly ass in assemblies)
             {
-                var types = ass.GetTypes().Where(type =>
+                Type[] loadedTypes;
+                try
+                {
+                    loadedTypes = ass.GetTypes();
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    loadedTypes = e.Types.Where(t => t != null).ToArray()!;
+                }
+
+                var types = loadedTypes.Where(type =>
                     !type.IsAbstract &&
                     !type.IsInterface &&
                     type.GetInterfaces().Any(i => markerInterfaces.Contains(i)));

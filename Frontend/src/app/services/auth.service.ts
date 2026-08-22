@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface LoginCommand {
   email: string;
@@ -34,7 +35,7 @@ export interface ResetPasswordCommand {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5253/api/auth';
+  private readonly apiUrl = `${environment.apiUrl}/api/auth`;
 
   login(command: LoginCommand): Observable<AuthenticationResult> {
     return this.http.post<AuthenticationResult>(`${this.apiUrl}/login`, command).pipe(
