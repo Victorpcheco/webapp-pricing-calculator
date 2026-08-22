@@ -7,9 +7,47 @@ interface NavigationItem {
   label: string;
   icon: string;
   path: string;
-  /** Telas ainda não implementadas ficam visíveis, porém sem navegação. */
-  disabled?: boolean;
 }
+
+interface SidebarTip {
+  eyebrow: string;
+  title: string;
+  text: string;
+}
+
+/** Cada tela do mockup traz um destaque próprio no rodapé da sidebar. */
+const SIDEBAR_TIPS: Record<string, SidebarTip> = {
+  '/dashboard': {
+    eyebrow: 'Jornada Completa',
+    title: 'Custos → Insumos → Receitas → Precificação → Lucro.',
+    text: 'Tudo integrado automaticamente no seu negócio.'
+  },
+  '/meus-custos': {
+    eyebrow: 'Por que calcular?',
+    title: 'Seu tempo também faz parte do custo.',
+    text: 'O valor da hora será usado depois para calcular o custo real de cada produto.'
+  },
+  '/meus-insumos': {
+    eyebrow: 'Precisão no custo',
+    title: 'Padronize para comparar.',
+    text: 'Compras em kg e litros são convertidas para gramas e mililitros automaticamente.'
+  },
+  '/meus-produtos': {
+    eyebrow: 'Composição',
+    title: 'Produto com custo completo.',
+    text: 'O custo dos materiais é somado ao valor do tempo dedicado à produção.'
+  },
+  '/precificacao': {
+    eyebrow: 'Decisão mais segura',
+    title: 'Preço com base no custo real.',
+    text: 'Teste margens e preços antes de vender para proteger o lucro do seu negócio.'
+  },
+  '/meus-resultados': {
+    eyebrow: 'Decisão com base em dados',
+    title: 'Seus resultados em tempo real.',
+    text: 'Acompanhe o desempenho de cada produto e identifique o que dá lucro de verdade.'
+  }
+};
 
 @Component({
   selector: 'app-shell',
@@ -24,6 +62,8 @@ export class AppShellComponent {
 
   /** Último item do breadcrumb, exibido em destaque na topbar. */
   @Input() breadcrumb = 'Visão geral';
+  /** Nível intermediário opcional do breadcrumb (ex.: "Configurações"). */
+  @Input() breadcrumbParent = '';
   @Input() userName = 'Marcia Oliveira';
   @Input() userCompany = 'Microempreendedora';
 
@@ -31,12 +71,29 @@ export class AppShellComponent {
 
   readonly navigation: NavigationItem[] = [
     { label: 'Visão geral', icon: '⌂', path: '/dashboard' },
-    { label: 'Meus Custos', icon: 'R$', path: '/meus-custos', disabled: true },
-    { label: 'Meus Insumos', icon: '◇', path: '/meus-insumos', disabled: true },
-    { label: 'Meus Produtos', icon: '▦', path: '/meus-produtos', disabled: true },
-    { label: 'Calcular Preços', icon: '%', path: '/precificacao', disabled: true },
-    { label: 'Meus Resultados', icon: '↗', path: '/meus-resultados', disabled: true }
+    { label: 'Meus Custos', icon: 'R$', path: '/meus-custos' },
+    { label: 'Meus Insumos', icon: '◇', path: '/meus-insumos' },
+    { label: 'Meus Produtos', icon: '▦', path: '/meus-produtos' },
+    { label: 'Calcular Preços', icon: '%', path: '/precificacao' },
+    { label: 'Meus Resultados', icon: '↗', path: '/meus-resultados' }
   ];
+
+  private get tip(): SidebarTip {
+    const path = this.router.url.split('?')[0];
+    return SIDEBAR_TIPS[path] ?? SIDEBAR_TIPS['/dashboard'];
+  }
+
+  get tipEyebrow(): string {
+    return this.tip.eyebrow;
+  }
+
+  get tipTitle(): string {
+    return this.tip.title;
+  }
+
+  get tipText(): string {
+    return this.tip.text;
+  }
 
   get userInitials(): string {
     return (this.userName || 'U')

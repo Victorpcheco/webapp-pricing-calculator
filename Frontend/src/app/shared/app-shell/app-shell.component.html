@@ -10,29 +10,18 @@
     </a>
     <div class="nav-label">Minha gestão</div>
     <nav class="side-nav" aria-label="Navegação principal">
-      <ng-container *ngFor="let item of navigation">
-        <a
-          *ngIf="!item.disabled; else pendingItem"
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          #linkActive="routerLinkActive"
-          [attr.aria-current]="linkActive.isActive ? 'page' : null"
-        ><span class="nav-icon">{{ item.icon }}</span><span>{{ item.label }}</span></a>
-
-        <ng-template #pendingItem>
-          <a
-            href="#"
-            (click)="$event.preventDefault()"
-            aria-disabled="true"
-            title="Tela em construção"
-          ><span class="nav-icon">{{ item.icon }}</span><span>{{ item.label }}</span></a>
-        </ng-template>
-      </ng-container>
+      <a
+        *ngFor="let item of navigation"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        #linkActive="routerLinkActive"
+        [attr.aria-current]="linkActive.isActive ? 'page' : null"
+      ><span class="nav-icon">{{ item.icon }}</span><span>{{ item.label }}</span></a>
     </nav>
     <div class="sidebar-tip">
-      <span>Jornada Completa</span>
-      <strong>Custos → Insumos → Receitas → Precificação → Lucro.</strong>
-      <p>Tudo integrado automaticamente no seu negócio.</p>
+      <span>{{ tipEyebrow }}</span>
+      <strong>{{ tipTitle }}</strong>
+      <p>{{ tipText }}</p>
     </div>
   </aside>
 
@@ -44,6 +33,10 @@
       <div class="breadcrumb">
         <a routerLink="/dashboard">MeuPreço</a>
         <span>/</span>
+        <ng-container *ngIf="breadcrumbParent">
+          <a routerLink="/dashboard">{{ breadcrumbParent }}</a>
+          <span>/</span>
+        </ng-container>
         <strong>{{ breadcrumb }}</strong>
       </div>
 

@@ -1,0 +1,194 @@
+<app-shell breadcrumb="Calcular Preços" breadcrumbParent="Gestão financeira">
+  <main class="content">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Decisão de venda</div>
+        <h1>Calcular Preços</h1>
+        <p>Defina sua margem de lucro, receba uma sugestão de preço e simule o resultado da venda antes de tomar uma
+          decisão comercial.</p>
+      </div>
+    </div>
+
+    <div class="pricing-layout">
+      <form class="card form-card" (ngSubmit)="onSubmit($event)" novalidate>
+        <div class="card-head">
+          <div>
+            <h2>Simulador de Cenários (Área de Teste)</h2>
+            <p>Altere os valores abaixo e acompanhe o resultado financeiro em tempo real.</p>
+          </div><span class="live-badge"><span class="live-dot"></span>Cálculo ativo</span>
+        </div>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">01</span>
+            <h3>Produto para precificar</h3><span>Base de custo</span>
+          </div>
+          <div class="form-group full">
+            <label for="recipeSelect">Produto ou receita cadastrada</label>
+            <select id="recipeSelect" name="recipe" [(ngModel)]="selectedRecipeId" (ngModelChange)="onRecipeChange()">
+              <option *ngFor="let item of recipes" [value]="item.id">{{ recipeOptionLabel(item) }}</option>
+            </select>
+            <p class="helper">O custo é carregado automaticamente a partir da composição salva do produto.</p>
+          </div>
+          <div class="recipe-preview">
+            <div><span class="recipe-preview-label">Base do cálculo</span><strong>{{ selectedRecipe?.name || 'Produto
+                sem nome' }}</strong>
+              <p>{{ recipeDetails }}</p>
+            </div>
+            <div class="recipe-cost"><strong>{{ money(cost) }}</strong><small>custo por {{ unitName }}</small></div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">02</span>
+            <h3>Margem desejada</h3><span>Sobre o custo</span>
+          </div>
+          <div class="margin-control">
+            <div class="range-wrap">
+              <label for="marginRange">Ajuste rápido da margem <small>0% a 150%</small></label>
+              <input type="range" id="marginRange" min="0" max="150" step="1" [value]="clampedMargin"
+                [style.background]="rangeBackground" (input)="onRangeChange($any($event.target).value)">
+              <div class="range-scale"><span>0%</span><span>50%</span><span>100%</span><span>150%</span></div>
+            </div>
+            <div class="form-group">
+              <label for="marginInput">Margem</label>
+              <div class="input-wrap"><input class="has-suffix" type="number" id="marginInput" name="marginInput"
+                  min="0" max="999" step="1" [(ngModel)]="margin" (ngModelChange)="onMarginInput()"><span
+                  class="input-suffix">%</span></div>
+            </div>
+          </div>
+          <div class="suggestion-strip"><span>Preço calculado com a margem aplicada sobre o custo
+              unitário:</span><strong>{{ money(suggested) }}</strong></div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">03</span>
+            <h3>Simulação de venda</h3><span>Cenário pretendido</span>
+          </div>
+          <div class="fields-grid">
+            <div class="form-group"><label for="salePrice">Preço que pretende cobrar</label>
+              <div class="input-wrap"><span class="input-prefix">R$</span><input class="has-prefix" type="number"
+                  id="salePrice" name="salePrice" min="0" step="0.01" [(ngModel)]="salePrice"></div>
+              <p class="helper">Você pode testar um preço diferente da sugestão.</p>
+            </div>
+            <div class="form-group"><label for="salesQuantity">Quantidade estimada</label>
+              <div class="input-wrap"><input class="has-suffix" type="number" id="salesQuantity" name="salesQuantity"
+                  min="1" step="1" [(ngModel)]="salesQuantity"><span class="input-suffix">un.</span></div>
+              <p class="helper">Usada para estimar o resultado total.</p>
+            </div>
+          </div>
+          <div class="price-compare">
+            <div class="compare-item"><span>Custo mínimo por unidade</span><strong>{{ money(cost) }}</strong></div>
+            <div class="compare-item accent"><span>Preço sugerido</span><strong>{{ money(suggested) }}</strong></div>
+            <div class="compare-item"><span>Diferença do sugerido</span><strong [style.color]="differenceColor">{{
+                differenceLabel }}</strong></div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button class="ghost-btn" type="button" (click)="clearForm()">Limpar dados</button>
+          <button class="primary-btn" type="submit">Salvar</button>
+        </div>
+      </form>
+
+      <aside class="card summary-card" aria-live="polite">
+        <div class="result-hero">
+          <div class="result-label"><span class="live-dot"></span>Preço de venda sugerido</div>
+          <div class="suggested-price"><span>{{ money(suggested) }}</span><small>{{ selectedRecipe?.name || 'Produto' }}
+              · por {{ unitName }}</small></div>
+          <p>Valor calculado a partir do custo real e da margem de lucro desejada.</p>
+        </div>
+        <div class="viability-box" [ngClass]="viability.cls">
+          <div class="viability-head"><span class="viability-icon">{{ viability.icon }}</span>
+            <div class="viability-copy"><strong>{{ viability.title }}</strong><span>{{ viability.text }}</span></div>
+          </div>
+        </div>
+        <div class="breakdown">
+          <div class="breakdown-title">
+            <h3>Resultado da simulação</h3><span>Atualização automática</span>
+          </div>
+          <div class="breakdown-list">
+            <div class="breakdown-row"><span>Custo por unidade</span><strong>{{ money(cost) }}</strong></div>
+            <div class="breakdown-row"><span>Preço praticado</span><strong>{{ money(price) }}</strong></div>
+            <div class="breakdown-row"><span>Lucro por unidade</span><strong [style.color]="profitColor">{{ profitLabel
+                }}</strong></div>
+            <div class="breakdown-row"><span>Margem real sobre a venda</span><strong>{{ percent(realMargin)
+                }}</strong></div>
+            <div class="breakdown-row"><span>Receita estimada</span><strong>{{ money(revenue) }}</strong></div>
+            <div class="breakdown-row total"><span>Lucro total estimado</span><strong
+                [style.color]="totalProfitColor">{{ totalProfitLabel }}</strong></div>
+          </div>
+        </div>
+        <div class="margin-meter">
+          <div class="meter-head"><span>Margem real</span><strong>{{ percent(realMargin) }}</strong></div>
+          <div class="meter-track"><span class="meter-fill" [style.width.%]="meterWidth"
+              [style.background]="viability.color"></span></div>
+        </div>
+        <div class="calculation-note"><span class="note-icon">i</span><span>O preço sugerido considera a margem sobre o
+            custo. A margem real compara o lucro com o preço efetivamente cobrado.</span></div>
+      </aside>
+    </div>
+
+    <section class="table-card" style="margin-top: 24px;">
+      <div class="table-toolbar">
+        <label class="search-wrap">
+          <span>⌕</span>
+          <input type="search" placeholder="Buscar simulação por produto..." autocomplete="off" [(ngModel)]="search"
+            [ngModelOptions]="{ standalone: true }">
+        </label>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="outline-btn" type="button" (click)="clearAllSimulations()">Limpar dados</button>
+        </div>
+      </div>
+      <div class="table-note">
+        <span>{{ visibleCountLabel }}</span>
+      </div>
+      <div class="table-scroll" *ngIf="filteredSimulations.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Produto / Receita</th>
+              <th>Custo Base</th>
+              <th>Margem</th>
+              <th>Preço de Venda</th>
+              <th>Lucro Unitário</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredSimulations">
+              <td data-label="Produto">
+                <div class="item-cell">
+                  <span class="item-avatar">%</span>
+                  <div class="item-copy">
+                    <strong>{{ item.recipeName || 'Produto sem nome' }}</strong>
+                    <span>{{ simulationSubtitle(item) }}</span>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Custo Base">{{ money(item.cost) }}</td>
+              <td data-label="Margem"><span style="font-weight:700; color:#475569;">{{ item.margin || 0 }}%</span></td>
+              <td data-label="Preço de Venda"><span class="cost-value">{{ money(item.salePrice) }}</span></td>
+              <td data-label="Lucro Unitário"><strong [style.color]="rowProfitColor(item)">{{ rowProfitLabel(item)
+                  }}</strong></td>
+              <td data-label="Ações">
+                <div class="actions">
+                  <button class="icon-btn" type="button" aria-label="Carregar simulação"
+                    (click)="editSimulation(item)">✎</button>
+                  <button class="icon-btn delete" type="button" aria-label="Excluir simulação"
+                    (click)="deleteSimulation(item)">×</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state visible" *ngIf="!filteredSimulations.length">
+        <div class="empty-icon">%</div>
+        <strong>Nenhuma simulação salva</strong>
+        <p>Selecione um produto, ajuste as margens e clique em "Salvar" para registrar o cálculo.</p>
+      </div>
+    </section>
+  </main>
+
+  <app-workspace-toast />
+</app-shell>

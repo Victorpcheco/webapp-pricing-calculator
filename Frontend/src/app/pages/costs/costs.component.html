@@ -1,0 +1,222 @@
+<app-shell breadcrumb="Meus Custos" breadcrumbParent="Configurações">
+  <main class="content">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Base da sua precificação</div>
+        <h1>Meus Custos</h1>
+        <p>Informe sua rotina e as despesas mensais do negócio. O MeuPreço calcula automaticamente quanto custa cada
+          hora do seu trabalho.</p>
+      </div>
+    </div>
+
+    <section class="progress-card" aria-label="Progresso da configuração">
+      <div class="progress-icon">✓</div>
+      <div class="progress-copy"><strong>Vamos montar a base do seu custo real</strong>
+        <p>Depois desta configuração, o valor calculado será aplicado ao tempo de produção dos seus produtos.</p>
+      </div>
+      <div class="progress-track" aria-hidden="true"><span></span></div>
+    </section>
+
+    <div class="calculator-layout">
+      <form class="card form-card" (ngSubmit)="onSubmit($event)" novalidate>
+        <div class="card-head">
+          <div>
+            <h2>Configure seus valores mensais</h2>
+            <p>Campos marcados com * são necessários para calcular o valor da hora.</p>
+          </div>
+        </div>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">01</span>
+            <h3>Remuneração e rotina</h3><span>Obrigatório</span>
+          </div>
+          <div class="fields-grid">
+            <div class="form-group">
+              <label for="salary">Quanto você quer ganhar por mês? <span class="required">*</span></label>
+              <div class="input-wrap"><span class="input-prefix">R$</span><input class="has-prefix money-input"
+                  type="text" inputmode="decimal" id="salary" name="salary" placeholder="3.000,00" autocomplete="off"
+                  [(ngModel)]="salary" (focus)="onMoneyFocus('salary')" (blur)="onMoneyBlur('salary')" required></div>
+              <p class="helper">Considere o salário mensal que deseja retirar do negócio.</p>
+            </div>
+            <div class="form-group">
+              <label for="hours">Quantas horas você trabalha por mês? <span class="required">*</span></label>
+              <div class="input-wrap"><input class="has-suffix" type="number" id="hours" name="hours" min="1" max="744"
+                  step="1" placeholder="176" [(ngModel)]="hours" required><span class="input-suffix">horas</span></div>
+              <p class="helper">Exemplo: 8 horas por dia × 22 dias = 176 horas.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">02</span>
+            <h3>Custos do negócio</h3><span>Opcionais</span>
+          </div>
+          <div class="fields-grid">
+            <div class="form-group full">
+              <label>Conta de energia mensal <small>Informe o total e a parcela usada no trabalho</small></label>
+              <div class="cost-pair">
+                <div><span class="mini-label">Valor da conta</span>
+                  <div class="input-wrap"><span class="input-prefix">R$</span><input class="has-prefix money-input"
+                      type="text" inputmode="decimal" id="energy" name="energy" placeholder="450,00" autocomplete="off"
+                      [(ngModel)]="energy" (focus)="onMoneyFocus('energy')" (blur)="onMoneyBlur('energy')"></div>
+                </div>
+                <div><span class="mini-label">Uso profissional</span>
+                  <div class="input-wrap"><input class="has-suffix" type="number" id="energyPercent"
+                      name="energy_percent" min="0" max="100" step="1" placeholder="30"
+                      [(ngModel)]="energyPercent"><span class="input-suffix">%</span></div>
+                </div>
+              </div>
+              <p class="helper">Somente a porcentagem utilizada na produção será incluída no cálculo.</p>
+            </div>
+
+            <div class="form-group full">
+              <label>Gasto mensal com gás <small>Informe o total e a parcela usada no trabalho</small></label>
+              <div class="cost-pair">
+                <div><span class="mini-label">Valor gasto</span>
+                  <div class="input-wrap"><span class="input-prefix">R$</span><input class="has-prefix money-input"
+                      type="text" inputmode="decimal" id="gas" name="gas" placeholder="180,00" autocomplete="off"
+                      [(ngModel)]="gas" (focus)="onMoneyFocus('gas')" (blur)="onMoneyBlur('gas')"></div>
+                </div>
+                <div><span class="mini-label">Uso profissional</span>
+                  <div class="input-wrap"><input class="has-suffix" type="number" id="gasPercent" name="gas_percent"
+                      min="0" max="100" step="1" placeholder="70" [(ngModel)]="gasPercent"><span
+                      class="input-suffix">%</span></div>
+                </div>
+              </div>
+              <p class="helper">Se o gás for exclusivo da produção, informe 100%.</p>
+            </div>
+
+            <div class="form-group full">
+              <div class="toggle-row">
+                <div class="toggle-copy"><strong>Você possui MEI e paga DAS?</strong><span>O valor integral será
+                    considerado como custo mensal.</span></div>
+                <label class="switch" aria-label="Possui MEI e paga DAS"><input type="checkbox" name="has_mei"
+                    [(ngModel)]="hasMei"><span class="slider"></span></label>
+              </div>
+            </div>
+            <div class="form-group full" [style.opacity]="hasMei ? '1' : '.58'">
+              <label for="das">Valor mensal do DAS <small>Opcional</small></label>
+              <div class="input-wrap"><span class="input-prefix">R$</span><input class="has-prefix money-input"
+                  type="text" inputmode="decimal" id="das" name="das" placeholder="80,90" autocomplete="off"
+                  [disabled]="!hasMei" [(ngModel)]="das" (focus)="onMoneyFocus('das')" (blur)="onMoneyBlur('das')">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">03</span>
+            <h3>Reserva para equipamentos</h3><span>Ajustável</span>
+          </div>
+          <div class="fields-grid">
+            <div class="form-group full">
+              <label for="depreciation">Percentual de depreciação <small>Recomendação inicial do escopo:
+                  5%</small></label>
+              <div class="input-wrap"><input class="has-suffix" type="number" id="depreciation" name="depreciation"
+                  min="0" max="100" step="0.1" [(ngModel)]="depreciation"><span class="input-suffix">%</span></div>
+              <p class="helper">Funciona como uma reserva para manutenção ou substituição de máquinas, forno,
+                ferramentas e outros equipamentos.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button class="ghost-btn" type="button" (click)="clearForm()">Limpar dados</button>
+          <button class="primary-btn" type="submit">Salvar</button>
+        </div>
+      </form>
+
+      <aside class="card summary-card" aria-live="polite">
+        <div class="result-hero">
+          <div class="result-label"><span class="live-dot"></span> Cálculo em tempo real</div>
+          <div class="hour-value"><span>{{ money(result.hour) }}</span> <small>/ hora</small></div>
+          <p>{{ resultMessage }}</p>
+        </div>
+        <div class="breakdown">
+          <div class="breakdown-title">
+            <h3>Composição mensal</h3><span>Valores proporcionais</span>
+          </div>
+          <div class="breakdown-list">
+            <div class="breakdown-row"><span>Energia usada no trabalho</span><strong>{{ money(result.energyReal)
+                }}</strong></div>
+            <div class="breakdown-row"><span>Gás usado no trabalho</span><strong>{{ money(result.gasReal) }}</strong>
+            </div>
+            <div class="breakdown-row"><span>DAS mensal</span><strong>{{ money(result.das) }}</strong></div>
+            <div class="breakdown-row"><span>Salário pretendido</span><strong>{{ money(result.salary) }}</strong></div>
+            <div class="breakdown-row"><span>Reserva de depreciação</span><strong>{{ money(result.depreciation)
+                }}</strong></div>
+            <div class="breakdown-row total"><span>Custo mensal considerado</span><strong>{{ money(result.monthly)
+                }}</strong></div>
+          </div>
+        </div>
+        <div class="formula-box"><strong>Como o MeuPreço calcula?</strong>
+          <p>(Energia proporcional + gás proporcional + DAS + salário + depreciação) ÷ horas trabalhadas.</p>
+        </div>
+        <div class="calculation-status"><span class="status-icon">✓</span><span>{{ calculationStatus }}</span></div>
+      </aside>
+    </div>
+
+    <section class="table-card" style="margin-top: 24px;">
+      <div class="table-toolbar">
+        <label class="search-wrap">
+          <span>⌕</span>
+          <input type="search" placeholder="Buscar por descrição ou data..." autocomplete="off" [(ngModel)]="search"
+            [ngModelOptions]="{ standalone: true }">
+        </label>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="outline-btn" type="button" (click)="clearHistory()">Limpar dados</button>
+        </div>
+      </div>
+      <div class="table-note">
+        <span>{{ visibleCountLabel }}</span>
+      </div>
+      <div class="table-scroll" *ngIf="filteredHistory.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Descrição / Data</th>
+              <th>Pró-labore</th>
+              <th>Horas / mês</th>
+              <th>Custo Mensal</th>
+              <th>Valor da Hora</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredHistory">
+              <td data-label="Descrição">
+                <div class="item-cell">
+                  <span class="item-avatar">R$</span>
+                  <div class="item-copy">
+                    <strong>{{ item.description || 'Cálculo de ' + formatDate(item.createdAt) }}</strong>
+                    <span>{{ formatDate(item.createdAt) }}</span>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Pró-labore">{{ money(item.salary) }}</td>
+              <td data-label="Horas / mês">{{ hoursLabel(item.hours) }}</td>
+              <td data-label="Custo Mensal"><strong style="color:#334155;">{{ money(item.monthly) }}</strong></td>
+              <td data-label="Valor da Hora"><span class="cost-value">{{ money(item.hour) }} <small>/ hora</small></span>
+              </td>
+              <td data-label="Ações">
+                <div class="actions">
+                  <button class="icon-btn" type="button" aria-label="Editar configuração"
+                    (click)="editItem(item)">✎</button>
+                  <button class="icon-btn delete" type="button" aria-label="Excluir configuração"
+                    (click)="deleteItem(item)">×</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state visible" *ngIf="!filteredHistory.length">
+        <div class="empty-icon">R$</div>
+        <strong>Nenhum custo salvo</strong>
+        <p>Preencha o formulário acima e clique em "Salvar" para registrar seus custos.</p>
+      </div>
+    </section>
+  </main>
+
+  <app-workspace-toast />
+</app-shell>
