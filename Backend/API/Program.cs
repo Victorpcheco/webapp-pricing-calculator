@@ -30,8 +30,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseFrontendCors();
+app.UseHttpsRedirection();
 
 app.UseControllersConfiguration();
 
