@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { MockStoreService } from './mock-store.service';
 
 /**
  * ============================================================
@@ -8,9 +9,11 @@ import { Observable, of } from 'rxjs';
  * HEADERS:  Authorization: Bearer <token>
  * RETORNO ESPERADO (200 OK): DashboardResumo
  *
- * Enquanto o endpoint não existe, `getResumo()` devolve o mock
- * abaixo. Para plugar no backend basta trocar o `of(MOCK_RESUMO)`
- * por `this.http.get<DashboardResumo>(`${apiUrl}/dashboard/resumo`)`.
+ * Enquanto o endpoint não existe, o resumo é derivado do
+ * `MockStoreService` — a mesma fonte das demais telas. É o que o
+ * `js/dashboard.js` do mockup fazia ao ler as chaves do
+ * localStorage gravadas por insumos, produtos, custos e
+ * precificação: o painel reflete o que foi cadastrado.
  * ============================================================
  */
 
@@ -39,49 +42,76 @@ export interface DashboardResumo {
   atividadesRecentes: AtividadeRecente[];
 }
 
-function isoHorasAtras(horas: number): string {
-  return new Date(Date.now() - horas * 60 * 60 * 1000).toISOString();
-}
-
-const MOCK_RESUMO: DashboardResumo = {
-  valorHora: 19.94,
-  totalInsumos: 14,
-  totalReceitas: 6,
-  totalSimulacoes: 4,
-  desempenhoProdutos: [
-    { nome: 'Cesta de Café da Manhã', custo: 42.3, preco: 75.0, lucro: 32.7 },
-    { nome: 'Bolo de Chocolate', custo: 21.4, preco: 38.0, lucro: 16.6 },
-    { nome: 'Torta de Limão', custo: 18.6, preco: 32.0, lucro: 13.4 },
-    { nome: 'Kit Brownie (6 un)', custo: 12.75, preco: 24.0, lucro: 11.25 },
-    { nome: 'Pão de Mel (10 un)', custo: 9.8, preco: 18.5, lucro: 8.7 }
-  ],
-  atividadesRecentes: [
-    {
-      tipo: 'precificacao',
-      titulo: 'Precificação de Cesta de Café da Manhã',
-      descricao: 'Preço definido em R$ 75,00',
-      data: isoHorasAtras(0)
-    },
-    {
-      tipo: 'produto',
-      titulo: 'Produto: Bolo de Chocolate',
-      descricao: 'Rendimento de 12 fatias',
-      data: isoHorasAtras(3)
-    },
-    {
-      tipo: 'insumo',
-      titulo: 'Insumo: Chocolate em pó 50%',
-      descricao: '500 g por R$ 18,90',
-      data: isoHorasAtras(27)
-    }
-  ]
-};
-
 @Injectable({
   providedIn: 'root'
 })
 export class DashboardService {
+  private readonly store = inject(MockStoreService);
+  private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
   getResumo(): Observable<DashboardResumo> {
-    return of(MOCK_RESUMO);
+    return of({
+      valorHora: this.store.hourlyRate,
+      totalInsumos: this.store.supplies.length,
+      totalReceitas: this.store.products.length,
+      totalSimulacoes: this.store.simulations.length,
+      desempenhoProdutos: this.buildDesempenho(),
+      atividadesRecentes: this.buildAtividades()
+    });
+  }
+
+  /** Prioriza as simulações de preço; sem elas, estima 40% de margem sobre o custo. */
+  private buildDesempenho(): DesempenhoProduto[] {
+    if (this.store.simulations.length) {
+      return this.store.simulations.map(simulation => {
+        const recipe = this.store.findProduct(simulation.recipeId);
+        const custo = Number(recipe?.unitCost !== undefined ? recipe.unitCost : simulation.cost || 0);
+        const preco = Number(simulation.salePrice || 0);
+        return { nome: recipe?.name || simulation.recipeName || 'Produto', custo, preco, lucro: preco - custo };
+      });
+    }
+
+    return this.store.products.map(product => {
+      const custo = Number(product.unitCost || 0);
+      const preco = custo * 1.4;
+      return { nome: product.name || 'Produto', custo, preco, lucro: preco - custo };
+    });
+  }
+
+  private buildAtividades(): AtividadeRecente[] {
+    const atividades: AtividadeRecente[] = [];
+    const now = Date.now();
+
+    const lastSimulation = this.store.simulations[0];
+    if (lastSimulation) {
+      atividades.push({
+        tipo: 'precificacao',
+        titulo: `Precificação de ${lastSimulation.recipeName || 'Produto'}`,
+        descricao: `Preço definido em ${this.currency.format(lastSimulation.salePrice || 0)}`,
+        data: lastSimulation.createdAt || new Date(now).toISOString()
+      });
+    }
+
+    const lastProduct = this.store.products[0];
+    if (lastProduct) {
+      atividades.push({
+        tipo: 'produto',
+        titulo: `Produto: ${lastProduct.name}`,
+        descricao: `Rendimento de ${lastProduct.yieldAmount || 1} ${lastProduct.yieldName || 'un'}`,
+        data: lastProduct.updatedAt || new Date(now).toISOString()
+      });
+    }
+
+    const lastSupply = this.store.supplies[0];
+    if (lastSupply) {
+      atividades.push({
+        tipo: 'insumo',
+        titulo: `Insumo: ${lastSupply.name}`,
+        descricao: `${lastSupply.quantity} ${lastSupply.unit} por ${this.currency.format(lastSupply.price || 0)}`,
+        data: new Date(now - 27 * 60 * 60 * 1000).toISOString()
+      });
+    }
+
+    return atividades;
   }
 }

@@ -21,6 +21,7 @@ import { Injectable } from '@angular/core';
  *   GET/POST/PUT/DELETE /api/produtos
  *   GET/POST/PUT/DELETE /api/custos
  *   GET/POST/PUT/DELETE /api/precificacoes
+ *   GET/POST/PUT/DELETE /api/colaboradores
  * ============================================================
  */
 
@@ -78,6 +79,34 @@ export interface CostHistoryItem extends CostResult {
   id: string;
   description: string;
   createdAt: string;
+}
+
+export type EmployeeContractType = 'CLT' | 'Freelancer';
+export type EmployeeStatus = 'Ativo' | 'Inativo';
+export type FreelancerFrequency = 'Mensal' | 'Por hora' | 'Por serviço';
+
+export interface Employee {
+  id: string;
+  code?: string;
+  name: string;
+  role: string;
+  contractType: EmployeeContractType;
+  status: EmployeeStatus;
+  admissionDate: string;
+  /** Salário bruto mensal (CLT) ou valor combinado (Freelancer). */
+  baseValue: number;
+  /** Só se aplica a Freelancer — CLT é sempre mensal. */
+  freelancerFrequency?: FreelancerFrequency;
+  phone?: string;
+}
+
+/** Encargos trabalhistas provisionados para um colaborador CLT. */
+export interface CltCharges {
+  fgts: number;
+  decimoTerceiro: number;
+  ferias: number;
+  umTercoFerias: number;
+  total: number;
 }
 
 export interface PricingSimulation {
@@ -184,6 +213,58 @@ export class MockStoreService {
       updatedAt: isoDaysAgo(5)
     }
   ];
+
+  /** Colaboradores — mesmos `demoEmployees` dos mockups. */
+  employees: Employee[] = [
+    {
+      id: 'colab_demo_1',
+      code: 'COL-01',
+      name: 'Juliana Ferreira',
+      role: 'Confeiteira',
+      contractType: 'CLT',
+      status: 'Ativo',
+      admissionDate: isoDaysAgo(240),
+      baseValue: 1900,
+      phone: '(11) 98888-1234'
+    },
+    {
+      id: 'colab_demo_2',
+      code: 'COL-02',
+      name: 'Rafael Souza',
+      role: 'Designer de embalagens',
+      contractType: 'Freelancer',
+      status: 'Ativo',
+      admissionDate: isoDaysAgo(60),
+      baseValue: 45,
+      freelancerFrequency: 'Por hora'
+    }
+  ];
+
+  /** Percentuais legais aproximados usados na provisão mensal do custo CLT. */
+  private readonly cltRates = {
+    fgts: 0.08,
+    decimoTerceiro: 1 / 12,
+    ferias: 1 / 12,
+    umTercoFerias: 1 / 36
+  };
+
+  /** Provisão mensal de FGTS, 13º e férias (+1/3) sobre o salário bruto. */
+  cltCharges(baseValue: number): CltCharges {
+    const base = Math.max(0, Number(baseValue) || 0);
+    const fgts = base * this.cltRates.fgts;
+    const decimoTerceiro = base * this.cltRates.decimoTerceiro;
+    const ferias = base * this.cltRates.ferias;
+    const umTercoFerias = base * this.cltRates.umTercoFerias;
+    return { fgts, decimoTerceiro, ferias, umTercoFerias, total: fgts + decimoTerceiro + ferias + umTercoFerias };
+  }
+
+  /** Custo mensal total: CLT soma os encargos, Freelancer é só o valor combinado. */
+  employeeMonthlyCost(employee: Employee): number {
+    if (employee.contractType === 'CLT') {
+      return employee.baseValue + this.cltCharges(employee.baseValue).total;
+    }
+    return employee.freelancerFrequency === 'Mensal' ? employee.baseValue : 0;
+  }
 
   /** Configuração de custo ativa — origem do valor da hora. */
   costSettings: CostResult = {

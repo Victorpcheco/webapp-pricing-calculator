@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, Input, inject } from '@angular/core';
+import { Component, HostListener, Input, ViewChild, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { HelpCenterComponent } from '../components/help-center/help-center.component';
 
 interface NavigationItem {
   label: string;
@@ -37,6 +38,11 @@ const SIDEBAR_TIPS: Record<string, SidebarTip> = {
     title: 'Produto com custo completo.',
     text: 'O custo dos materiais é somado ao valor do tempo dedicado à produção.'
   },
+  '/meus-colaboradores': {
+    eyebrow: 'Gestão da equipe',
+    title: 'CLT ou Freelancer, o custo real na ponta do lápis.',
+    text: 'Colaboradores CLT já somam FGTS, 13º e férias + 1/3 automaticamente.'
+  },
   '/precificacao': {
     eyebrow: 'Decisão mais segura',
     title: 'Preço com base no custo real.',
@@ -52,13 +58,15 @@ const SIDEBAR_TIPS: Record<string, SidebarTip> = {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, HelpCenterComponent],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss'
 })
 export class AppShellComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+
+  @ViewChild('helpCenter') private helpCenter?: HelpCenterComponent;
 
   /** Último item do breadcrumb, exibido em destaque na topbar. */
   @Input() breadcrumb = 'Visão geral';
@@ -74,6 +82,7 @@ export class AppShellComponent {
     { label: 'Meus Custos', icon: 'R$', path: '/meus-custos' },
     { label: 'Meus Insumos', icon: '◇', path: '/meus-insumos' },
     { label: 'Meus Produtos', icon: '▦', path: '/meus-produtos' },
+    { label: 'Meus Colaboradores', icon: 'RH', path: '/meus-colaboradores' },
     { label: 'Calcular Preços', icon: '%', path: '/precificacao' },
     { label: 'Meus Resultados', icon: '↗', path: '/meus-resultados' }
   ];
@@ -117,6 +126,12 @@ export class AppShellComponent {
   @HostListener('document:keydown.escape')
   onEscape() {
     this.isDropdownOpen = false;
+  }
+
+  /** Abre a Central de Ajuda já posicionada na seção da tela atual. */
+  openHelp() {
+    this.isDropdownOpen = false;
+    this.helpCenter?.open(this.router.url.split('?')[0]);
   }
 
   logout() {

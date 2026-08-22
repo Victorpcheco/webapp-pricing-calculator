@@ -40,27 +40,42 @@
         <strong>{{ breadcrumb }}</strong>
       </div>
 
-      <div class="user-menu-wrap">
-        <div
-          class="user-menu"
-          tabindex="0"
-          role="button"
-          aria-haspopup="true"
-          [attr.aria-expanded]="isDropdownOpen"
-          (click)="toggleDropdown($event)"
-          (keydown.enter)="toggleDropdown($event)"
-          (keydown.space)="toggleDropdown($event)"
+      <div class="topbar-actions">
+        <!-- Abre a Central de Ajuda já na seção da tela atual. -->
+        <button
+          class="help-btn"
+          type="button"
+          (click)="openHelp()"
+          title="Central de Ajuda — o que significa cada campo"
+          aria-label="Abrir a central de ajuda"
         >
-          <div class="user-copy">
-            <strong>{{ userName }}</strong>
-            <span>{{ userCompany }}</span>
-          </div>
-          <div class="avatar">{{ userInitials }}</div>
-        </div>
+          <span class="help-btn-icon" aria-hidden="true">?</span>
+          <span class="help-btn-text">Ajuda</span>
+        </button>
 
-        <!-- Dropdown Menu (Apenas Sair) -->
-        <div class="dropdown-menu" [class.show]="isDropdownOpen">
-          <button type="button" class="dropdown-item danger" (click)="logout()">🚪 Sair</button>
+        <div class="user-menu-wrap">
+          <div
+            class="user-menu"
+            tabindex="0"
+            role="button"
+            aria-haspopup="true"
+            [attr.aria-expanded]="isDropdownOpen"
+            (click)="toggleDropdown($event)"
+            (keydown.enter)="toggleDropdown($event)"
+            (keydown.space)="toggleDropdown($event)"
+          >
+            <div class="user-copy">
+              <strong>{{ userName }}</strong>
+              <span>{{ userCompany }}</span>
+            </div>
+            <div class="avatar">{{ userInitials }}</div>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div class="dropdown-menu" [class.show]="isDropdownOpen">
+            <button type="button" class="dropdown-item" (click)="openHelp()">❔ Central de Ajuda</button>
+            <button type="button" class="dropdown-item danger" (click)="logout()">🚪 Sair</button>
+          </div>
         </div>
       </div>
     </header>
@@ -68,3 +83,6 @@
     <ng-content />
   </section>
 </div>
+
+<!-- Pop-up de ajuda: disponível em todas as telas internas. -->
+<app-help-center #helpCenter />

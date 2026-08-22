@@ -229,6 +229,51 @@
 }
 
 /* User Menu Dropdown */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Botão "?" que abre a Central de Ajuda. */
+.help-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text-muted);
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.help-btn:hover {
+  background: var(--primary-light);
+  border-color: rgba(37, 99, 235, .35);
+  color: var(--primary);
+}
+
+.help-btn-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.help-btn:hover .help-btn-icon {
+  background: var(--primary);
+  color: #fff;
+}
+
 .user-menu-wrap {
   position: relative;
 }
@@ -374,5 +419,14 @@
   .topbar {
     min-height: 68px;
     padding: 12px 18px;
+  }
+
+  /* No celular sobra só o ícone "?" para não disputar espaço com o usuário. */
+  .help-btn {
+    padding: 8px;
+  }
+
+  .help-btn-text {
+    display: none;
   }
 }
