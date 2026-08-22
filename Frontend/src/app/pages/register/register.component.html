@@ -43,12 +43,13 @@
             formControlName="telefone"
             autocomplete="tel"
             placeholder="(11) 99999-9999"
+            (input)="formatPhone()"
           />
           @if (registerForm.get('telefone')?.invalid && (registerForm.get('telefone')?.dirty || registerForm.get('telefone')?.touched)) {
             @if (registerForm.get('telefone')?.hasError('required')) {
               <span class="validation-error">Telefone é obrigatório</span>
             } @else {
-              <span class="validation-error">O telefone deve ter entre 10 e 15 caracteres</span>
+              <span class="validation-error">Informe um telefone válido</span>
             }
           }
         </div>
@@ -63,7 +64,11 @@
             placeholder="maria@email.com"
           />
           @if (registerForm.get('email')?.invalid && (registerForm.get('email')?.dirty || registerForm.get('email')?.touched)) {
-            <span class="validation-error">E-mail inválido</span>
+            @if (registerForm.get('email')?.hasError('required')) {
+              <span class="validation-error">E-mail é obrigatório</span>
+            } @else {
+              <span class="validation-error">Informe um e-mail válido</span>
+            }
           }
         </div>
 
