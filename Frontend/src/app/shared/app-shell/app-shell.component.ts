@@ -14,11 +14,5 @@ interface NavigationItem {
   styleUrl: './app-shell.component.scss'
 })
 export class AppShellComponent {
-  readonly navigation: NavigationItem[] = [
-    { label: 'Painel', path: '/dashboard' },
-    { label: 'Produtos', path: '/produtos' },
-    { label: 'Ingredientes', path: '/ingredientes' },
-    { label: 'Pedidos', path: '/pedidos' },
-    { label: 'Relatórios', path: '/relatorios' }
-  ];
+  readonly navigation: NavigationItem[] = [];
 }
