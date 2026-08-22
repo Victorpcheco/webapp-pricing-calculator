@@ -10,7 +10,7 @@ public static class CorsExtensions
         {
             options.AddPolicy(PolicyName, policy =>
             {
-                policy.WithOrigins("http://localhost:4200")
+                policy.AllowAnyOrigin()
                       .AllowAnyMethod()
                       .AllowAnyHeader();
             });
