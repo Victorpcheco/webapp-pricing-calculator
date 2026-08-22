@@ -1,0 +1,110 @@
+<div class="auth-page">
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>Comece a<br />controlar<br />seus lucros.</h1>
+
+      <p>
+        Crie sua conta para organizar custos, acompanhar ingredientes e vender
+        com mais segurança em cada receita.
+      </p>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="logo">M</div>
+        <span>MeuPreço</span>
+      </div>
+
+      <h2>Criar conta</h2>
+      <p class="subtitle">Preencha seus dados para acessar a plataforma.</p>
+
+      <form [formGroup]="registerForm" (submit)="onSubmit($event)">
+        <div class="form-group">
+          <label for="name">Nome</label>
+          <input
+            id="name"
+            type="text"
+            formControlName="nome"
+            autocomplete="name"
+            placeholder="Maria Silva"
+          />
+          @if (registerForm.get('nome')?.invalid && (registerForm.get('nome')?.dirty || registerForm.get('nome')?.touched)) {
+            <span class="validation-error">Nome é obrigatório</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="telefone">Telefone</label>
+          <input
+            id="telefone"
+            type="tel"
+            formControlName="telefone"
+            autocomplete="tel"
+            placeholder="(11) 99999-9999"
+          />
+          @if (registerForm.get('telefone')?.invalid && (registerForm.get('telefone')?.dirty || registerForm.get('telefone')?.touched)) {
+            @if (registerForm.get('telefone')?.hasError('required')) {
+              <span class="validation-error">Telefone é obrigatório</span>
+            } @else {
+              <span class="validation-error">O telefone deve ter entre 10 e 15 caracteres</span>
+            }
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="maria@email.com"
+          />
+          @if (registerForm.get('email')?.invalid && (registerForm.get('email')?.dirty || registerForm.get('email')?.touched)) {
+            <span class="validation-error">E-mail inválido</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            placeholder="••••••••"
+          />
+          @if (registerForm.get('password')?.invalid && (registerForm.get('password')?.dirty || registerForm.get('password')?.touched)) {
+            @if (registerForm.get('password')?.hasError('required')) {
+              <span class="validation-error">Senha é obrigatória</span>
+            } @else if (registerForm.get('password')?.hasError('pattern')) {
+              <span class="validation-error">A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.</span>
+            }
+          }
+        </div>
+
+        <div class="form-group last">
+          <label for="confirm-password">Confirmar senha</label>
+          <input
+            id="confirm-password"
+            type="password"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button type="submit" [disabled]="registerForm.invalid || isSubmitting">
+          {{ isSubmitting ? 'Cadastrando...' : 'Criar Conta' }}
+        </button>
+      </form>
+
+      <p class="auth-link">
+        Já tem conta?
+        <a routerLink="/">Entrar</a>
+      </p>
+    </div>
+  </section>
+</div>

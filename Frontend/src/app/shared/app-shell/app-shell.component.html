@@ -1,0 +1,32 @@
+<div class="app-shell">
+  <aside class="app-sidebar" aria-label="Navegação principal">
+    <a class="brand" routerLink="/" aria-label="MeuPreço dashboard">
+      <span class="logo">M</span>
+      <span>MeuPreço</span>
+    </a>
+
+    <nav class="nav-list">
+      <a
+        *ngFor="let item of navigation"
+        class="nav-item"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+      >
+        {{ item.label }}
+      </a>
+    </nav>
+
+    <div class="sidebar-summary">
+      <span>Meta mensal</span>
+      <strong>R$ 12.000</strong>
+      <div class="progress-line">
+        <span style="width: 70%"></span>
+      </div>
+      <small>70% alcançado</small>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <ng-content />
+  </main>
+</div>
