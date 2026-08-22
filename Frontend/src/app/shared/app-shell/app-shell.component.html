@@ -1,32 +1,77 @@
 <div class="app-shell">
-  <aside class="app-sidebar" aria-label="Navegação principal">
-    <a class="brand" routerLink="/" aria-label="MeuPreço dashboard">
-      <span class="logo">M</span>
-      <span>MeuPreço</span>
+
+  <!-- =============================================
+       SIDEBAR
+  ============================================= -->
+  <aside class="sidebar">
+    <a class="logo-area" routerLink="/dashboard" aria-label="MeuPreço - início">
+      <span class="logo-icon">M</span>
+      <span class="logo-text">MeuPreço</span>
     </a>
+    <div class="nav-label">Minha gestão</div>
+    <nav class="side-nav" aria-label="Navegação principal">
+      <ng-container *ngFor="let item of navigation">
+        <a
+          *ngIf="!item.disabled; else pendingItem"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          #linkActive="routerLinkActive"
+          [attr.aria-current]="linkActive.isActive ? 'page' : null"
+        ><span class="nav-icon">{{ item.icon }}</span><span>{{ item.label }}</span></a>
 
-    <nav class="nav-list">
-      <a
-        *ngFor="let item of navigation"
-        class="nav-item"
-        [routerLink]="item.path"
-        routerLinkActive="active"
-      >
-        {{ item.label }}
-      </a>
+        <ng-template #pendingItem>
+          <a
+            href="#"
+            (click)="$event.preventDefault()"
+            aria-disabled="true"
+            title="Tela em construção"
+          ><span class="nav-icon">{{ item.icon }}</span><span>{{ item.label }}</span></a>
+        </ng-template>
+      </ng-container>
     </nav>
-
-    <div class="sidebar-summary">
-      <span>Meta mensal</span>
-      <strong>R$ 12.000</strong>
-      <div class="progress-line">
-        <span style="width: 70%"></span>
-      </div>
-      <small>70% alcançado</small>
+    <div class="sidebar-tip">
+      <span>Jornada Completa</span>
+      <strong>Custos → Insumos → Receitas → Precificação → Lucro.</strong>
+      <p>Tudo integrado automaticamente no seu negócio.</p>
     </div>
   </aside>
 
-  <main class="app-main">
+  <!-- =============================================
+       WORKSPACE
+  ============================================= -->
+  <section class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <a routerLink="/dashboard">MeuPreço</a>
+        <span>/</span>
+        <strong>{{ breadcrumb }}</strong>
+      </div>
+
+      <div class="user-menu-wrap">
+        <div
+          class="user-menu"
+          tabindex="0"
+          role="button"
+          aria-haspopup="true"
+          [attr.aria-expanded]="isDropdownOpen"
+          (click)="toggleDropdown($event)"
+          (keydown.enter)="toggleDropdown($event)"
+          (keydown.space)="toggleDropdown($event)"
+        >
+          <div class="user-copy">
+            <strong>{{ userName }}</strong>
+            <span>{{ userCompany }}</span>
+          </div>
+          <div class="avatar">{{ userInitials }}</div>
+        </div>
+
+        <!-- Dropdown Menu (Apenas Sair) -->
+        <div class="dropdown-menu" [class.show]="isDropdownOpen">
+          <button type="button" class="dropdown-item danger" (click)="logout()">🚪 Sair</button>
+        </div>
+      </div>
+    </header>
+
     <ng-content />
-  </main>
+  </section>
 </div>
