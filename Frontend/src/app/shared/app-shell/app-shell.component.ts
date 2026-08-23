@@ -66,14 +66,17 @@ export class AppShellComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
+
   @ViewChild('helpCenter') private helpCenter?: HelpCenterComponent;
 
   /** Último item do breadcrumb, exibido em destaque na topbar. */
   @Input() breadcrumb = 'Visão geral';
   /** Nível intermediário opcional do breadcrumb (ex.: "Configurações"). */
   @Input() breadcrumbParent = '';
-  @Input() userName = 'Marcia Oliveira';
-  @Input() userCompany = 'Microempreendedora';
+
+  get userName(): string {
+    return this.authService.getUserName();
+  }
 
   isDropdownOpen = false;
 

@@ -28,7 +28,7 @@ public static class InfraConfiguration
         {
             Username = username,
             Host = host,
-            Port = int.Parse(port),
+            Port = int.TryParse(port, out var portNumber) ? portNumber : 5432,
             Database = database,
             Password = password
         };

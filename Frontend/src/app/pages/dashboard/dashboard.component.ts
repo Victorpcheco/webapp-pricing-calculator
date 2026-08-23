@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
+import { AuthService } from '../../services/auth.service';
 import {
   AtividadeRecente,
   DashboardResumo,
@@ -44,11 +45,8 @@ const ACTIVITY_STYLE: Record<TipoAtividade, { icon: string; bg: string; color: s
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+  private readonly authService = inject(AuthService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-
-  /** Dados de sessão — hoje mockados, virão do login quando o backend expuser o perfil. */
-  readonly userName = 'Marcia Oliveira';
-  readonly userCompany = 'Microempreendedora';
 
   kpiHour = 'R$ 0,00';
   kpiItems = 0;
@@ -59,7 +57,8 @@ export class DashboardComponent implements OnInit {
   activities: ActivityRow[] = [];
 
   get firstName(): string {
-    return this.userName.split(' ')[0];
+    const name = this.authService.getUserName();
+    return name ? name.split(' ')[0] : '';
   }
 
   ngOnInit() {

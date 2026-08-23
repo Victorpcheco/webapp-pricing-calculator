@@ -21,7 +21,9 @@ builder.Services.Configure<Infrastructure.Authentication.JwtOptions>(
 builder.Services.Configure<Infrastructure.Notifications.EmailOptions>(
     builder.Configuration.GetSection("EmailOptions"));
 
+builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddFrontendCors();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -32,6 +34,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseFrontendCors();
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseControllersConfiguration();
 

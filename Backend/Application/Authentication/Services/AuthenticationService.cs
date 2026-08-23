@@ -71,7 +71,7 @@ public class AuthenticationService : IScopedService
             return Result<AuthenticationResult>.Failure("Usuário ou senha inválidos");
         }
 
-        var token = _jwtTokenGenerator.GenerateToken(usuario.Id, usuario.Email);
+        var token = _jwtTokenGenerator.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
         await _eventPublisher.PublishAsync(new UsuarioLogadoEvent(usuario.Id, usuario.Email), cancellationToken);
 
         return Result<AuthenticationResult>.Success(new AuthenticationResult(usuario.Id, token));

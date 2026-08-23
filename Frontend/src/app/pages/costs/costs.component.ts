@@ -3,36 +3,27 @@ import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
-import { CostHistoryItem, CostResult, MockStoreService } from '../../services/mock-store.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { CostHistoryItem, CustosApiService, SalvarCustoCommand } from '../../services/custos-api.service';
+import { MockStoreService } from '../../services/mock-store.service';
 
-/**
- * ============================================================
- * BACKEND (C# / ASP.NET) — CUSTOS OPERACIONAIS / VALOR DA HORA
- * GET    /api/custos            → lista o histórico
- * POST   /api/custos            → cria uma configuração
- * PUT    /api/custos/{id}       → atualiza
- * DELETE /api/custos/{id}       → remove
- * HEADERS: Authorization: Bearer <token>
- *
- * Fórmula aplicada (idêntica ao mockup):
- *   base   = energia×% + gás×% + DAS + salário
- *   mensal = base + (base × depreciação%)
- *   hora   = mensal ÷ horas trabalhadas
- * ============================================================
- */
 @Component({
   selector: 'app-costs',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent],
+  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
   templateUrl: './costs.component.html',
   styleUrl: './costs.component.scss'
 })
 export class CostsComponent implements OnInit {
+  private readonly api = inject(CustosApiService);
+  // Mantido apenas para propagar o hourlyRate às telas ainda não integradas
   private readonly store = inject(MockStoreService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   @ViewChild(WorkspaceToastComponent) toast!: WorkspaceToastComponent;
+  @ViewChild(ConfirmDialogComponent) confirmDialog!: ConfirmDialogComponent;
 
+  loading = false;
   editId = '';
 
   salary = '';
@@ -45,13 +36,14 @@ export class CostsComponent implements OnInit {
   das = '';
   depreciation: number | null = 5;
 
+  history: CostHistoryItem[] = [];
   search = '';
 
   ngOnInit() {
-    this.restoreSavedData();
+    this.carregarHistorico();
   }
 
-  /* ===================== CÁLCULO ===================== */
+  /* ===================== CÁLCULO (client-side para preview em tempo real) ===================== */
 
   private parseBR(value: string | null | undefined): number {
     if (!value) return 0;
@@ -64,7 +56,7 @@ export class CostsComponent implements OnInit {
     return Math.min(100, Math.max(0, Number(value) || 0));
   }
 
-  get result(): CostResult {
+  get result() {
     const salary = this.parseBR(this.salary);
     const hours = Math.max(0, Number(this.hours) || 0);
     const energy = this.parseBR(this.energy);
@@ -78,22 +70,7 @@ export class CostsComponent implements OnInit {
     const monthly = baseCost + depreciation;
     const hour = hours > 0 ? monthly / hours : 0;
 
-    return {
-      salary,
-      hours,
-      energy,
-      energyPercent: this.safePercent(this.energyPercent),
-      gas,
-      gasPercent: this.safePercent(this.gasPercent),
-      hasMei: this.hasMei,
-      das,
-      depreciationRate,
-      energyReal,
-      gasReal,
-      depreciation,
-      monthly,
-      hour
-    };
+    return { salary, hours, energy, energyReal, gas, gasReal, das, depreciationRate, depreciation, monthly, hour };
   }
 
   get isReady(): boolean {
@@ -131,10 +108,6 @@ export class CostsComponent implements OnInit {
 
   /* ===================== HISTÓRICO ===================== */
 
-  get history(): CostHistoryItem[] {
-    return this.store.costHistory;
-  }
-
   get filteredHistory(): CostHistoryItem[] {
     const search = this.search.toLowerCase().trim();
     return this.history.filter(item => {
@@ -157,12 +130,31 @@ export class CostsComponent implements OnInit {
     return `${Number(hours || 0).toLocaleString('pt-BR')}h`;
   }
 
+  /* ===================== AÇÕES ===================== */
+
+  private carregarHistorico() {
+    this.loading = true;
+    this.api.listar().subscribe({
+      next: items => {
+        this.history = items;
+        if (items.length > 0 && !this.editId) {
+          this.preencherFormulario(items[0]);
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.toast.show('Erro ao carregar o histórico de custos.');
+        this.loading = false;
+      }
+    });
+  }
+
   onSubmit(event: Event) {
     event.preventDefault();
-    const result = this.result;
+    const r = this.result;
 
-    if (result.salary <= 0 || result.hours <= 0) {
-      const target = document.getElementById(result.salary <= 0 ? 'salary' : 'hours') as HTMLInputElement | null;
+    if (r.salary <= 0 || r.hours <= 0) {
+      const target = document.getElementById(r.salary <= 0 ? 'salary' : 'hours') as HTMLInputElement | null;
       target?.focus();
       target?.setCustomValidity('Preencha este campo com um valor maior que zero.');
       target?.reportValidity();
@@ -170,29 +162,113 @@ export class CostsComponent implements OnInit {
       return;
     }
 
-    this.store.costSettings = result;
-
-    const dateStr = new Date().toLocaleDateString('pt-BR');
-    const existing = this.history.find(item => item.id === this.editId);
-    const costItem: CostHistoryItem = {
-      id: this.editId || `cost_${Date.now()}`,
-      description: this.editId ? existing?.description || `Cálculo de ${dateStr}` : `Cálculo de ${dateStr}`,
-      createdAt: new Date().toISOString(),
-      ...result
+    const command: SalvarCustoCommand = {
+      salary: r.salary,
+      hours: r.hours,
+      energy: this.parseBR(this.energy),
+      energyPercent: this.safePercent(this.energyPercent),
+      gas: this.parseBR(this.gas),
+      gasPercent: this.safePercent(this.gasPercent),
+      hasMei: this.hasMei,
+      das: this.hasMei ? this.parseBR(this.das) : 0,
+      depreciationRate: this.safePercent(this.depreciation)
     };
 
-    if (this.editId) {
-      this.store.costHistory = this.history.map(item => (item.id === this.editId ? costItem : item));
-    } else {
-      this.store.costHistory = [costItem, ...this.history];
-    }
+    this.loading = true;
 
+    if (this.editId) {
+      this.api.atualizar(this.editId, command).subscribe({
+        next: updated => this.onSalvoComSucesso(updated),
+        error: () => {
+          this.toast.show('Erro ao atualizar configuração.');
+          this.loading = false;
+        }
+      });
+    } else {
+      this.api.criar(command).subscribe({
+        next: criado => this.onSalvoComSucesso(criado),
+        error: () => {
+          this.toast.show('Erro ao salvar configuração.');
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  private onSalvoComSucesso(item: CostHistoryItem) {
+    if (this.editId) {
+      this.history = this.history.map(h => h.id === item.id ? item : h);
+    } else {
+      this.history = [item, ...this.history];
+    }
+    // Propaga o valor da hora para telas ainda não integradas
+    this.store.costSettings = {
+      salary: item.salary, hours: item.hours,
+      energy: item.energy, energyPercent: item.energyPercent,
+      gas: item.gas, gasPercent: item.gasPercent,
+      hasMei: item.hasMei, das: item.das,
+      depreciationRate: item.depreciationRate,
+      energyReal: item.energyReal, gasReal: item.gasReal,
+      depreciation: item.depreciation, monthly: item.monthly, hour: item.hour
+    };
     this.editId = '';
+    this.loading = false;
     this.toast.show('Informação atualizada com sucesso!');
   }
 
   editItem(item: CostHistoryItem) {
     this.editId = item.id;
+    this.preencherFormulario(item);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('salary')?.focus();
+  }
+
+  async deleteItem(item: CostHistoryItem) {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Excluir configuração',
+      message: 'Tem certeza que deseja excluir esta configuração? Esta ação não pode ser desfeita.',
+      confirmLabel: 'Excluir',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    this.api.excluir(item.id).subscribe({
+      next: () => {
+        this.history = this.history.filter(h => h.id !== item.id);
+        if (this.editId === item.id) this.resetForm();
+        this.toast.show('Configuração excluída com sucesso!');
+      },
+      error: () => this.toast.show('Erro ao excluir configuração.')
+    });
+  }
+
+  async clearHistory() {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Limpar histórico',
+      message: 'Todos os custos salvos serão removidos permanentemente. Deseja continuar?',
+      confirmLabel: 'Limpar tudo',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    this.api.limparHistorico().subscribe({
+      next: () => {
+        this.history = [];
+        this.resetForm();
+        this.hasMei = false;
+        this.toast.show('Dados de custos limpos com sucesso!');
+      },
+      error: () => this.toast.show('Erro ao limpar o histórico.')
+    });
+  }
+
+  clearForm() {
+    this.resetForm();
+    this.hasMei = false;
+    this.toast.show('Formulário limpo.');
+  }
+
+  private preencherFormulario(item: CostHistoryItem) {
     this.salary = item.salary ? item.salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
     this.hours = item.hours || null;
     this.energy = item.energy ? item.energy.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
@@ -202,34 +278,6 @@ export class CostsComponent implements OnInit {
     this.hasMei = item.hasMei !== false;
     this.das = item.das ? item.das.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
     this.depreciation = item.depreciationRate ?? 5;
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.getElementById('salary')?.focus();
-  }
-
-  deleteItem(item: CostHistoryItem) {
-    if (!window.confirm('Deseja realmente excluir esta configuração de custo?')) return;
-
-    this.store.costHistory = this.history.filter(current => current.id !== item.id);
-    if (this.store.costHistory.length > 0) {
-      this.store.costSettings = this.store.costHistory[0];
-    }
-    this.toast.show('Configuração excluída com sucesso!');
-  }
-
-  clearHistory() {
-    if (!window.confirm('Deseja limpar todo o histórico de custos salvos?')) return;
-
-    this.store.costHistory = [];
-    this.resetForm();
-    this.hasMei = false;
-    this.toast.show('Dados de custos limpos com sucesso!');
-  }
-
-  clearForm() {
-    this.resetForm();
-    this.hasMei = false;
-    this.toast.show('Dados de custos limpos com sucesso!');
   }
 
   private resetForm() {
@@ -242,20 +290,5 @@ export class CostsComponent implements OnInit {
     this.gasPercent = null;
     this.das = '';
     this.depreciation = null;
-  }
-
-  private restoreSavedData() {
-    const saved = this.store.costSettings;
-    if (!saved) return;
-
-    this.salary = saved.salary ? saved.salary.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
-    this.hours = saved.hours || null;
-    this.energy = saved.energy ? saved.energy.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
-    this.energyPercent = saved.energyPercent || null;
-    this.gas = saved.gas ? saved.gas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
-    this.gasPercent = saved.gasPercent || null;
-    this.hasMei = saved.hasMei !== false;
-    this.das = saved.das ? saved.das.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
-    this.depreciation = saved.depreciationRate ?? 5;
   }
 }
