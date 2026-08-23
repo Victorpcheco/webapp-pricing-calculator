@@ -8,9 +8,6 @@ namespace Application.Colaboradores.Commands;
 public record AtualizarColaboradorCommand(
     Guid Id,
 
-    [MaxLength(30, ErrorMessage = "O código deve ter no máximo 30 caracteres.")]
-    string? Code,
-
     [Required(ErrorMessage = "O nome do colaborador é obrigatório.")]
     [MaxLength(80, ErrorMessage = "O nome deve ter no máximo 80 caracteres.")]
     string Name,

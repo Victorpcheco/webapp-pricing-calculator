@@ -62,7 +62,6 @@ export class EmployeesComponent implements OnInit {
 
   modalOpen = false;
   editId = '';
-  formCode = '';
   formName = '';
   formRole = '';
   formContractType: ContractType = 'CLT';
@@ -204,7 +203,6 @@ export class EmployeesComponent implements OnInit {
 
   openModal(item?: EmployeeItem) {
     this.editId = item?.id ?? '';
-    this.formCode = item?.code ?? '';
     this.formName = item?.name ?? '';
     this.formRole = item?.role ?? '';
     this.formContractType = item?.contractType ?? 'CLT';
@@ -277,11 +275,9 @@ export class EmployeesComponent implements OnInit {
       return;
     }
 
-    const code = this.formCode.trim();
     const phone = this.formPhone.trim();
 
     const command: SalvarColaboradorCommand = {
-      code: code || null,
       name,
       role,
       contractType: this.formContractType,

@@ -67,6 +67,14 @@ public class ColaboradorRepository : IColaboradorRepository, IScopedService
             : new ColaboradoresResumo(resumo.Total, resumo.Clt, resumo.Freelancers, resumo.CustoEquipe);
     }
 
+    public async Task<int> ContarPorUsuarioAsync(Guid usuarioId, CancellationToken ct = default)
+    {
+        return await _context.Colaboradores
+            .AsNoTracking()
+            .Where(c => c.UsuarioId == usuarioId)
+            .CountAsync(ct);
+    }
+
     public async Task<Colaborador?> ObterPorIdAsync(Guid id, Guid usuarioId, CancellationToken ct = default)
     {
         return await _context.Colaboradores

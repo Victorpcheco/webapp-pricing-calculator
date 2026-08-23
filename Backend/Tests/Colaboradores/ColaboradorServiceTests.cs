@@ -41,7 +41,6 @@ public class ColaboradorServiceTests
             TipoContratacao.Freelancer, StatusColaborador.Ativo, null, 45m, frequencia, null).Value;
 
     private static CriarColaboradorCommand CommandValido(
-        string? codigo = "COL-01",
         string nome = "Juliana Ferreira",
         string cargo = "Confeiteira",
         string tipo = "CLT",
@@ -50,7 +49,7 @@ public class ColaboradorServiceTests
         decimal valorBase = 1900m,
         string? frequencia = null,
         string? telefone = "(11) 98888-1234")
-        => new(codigo, nome, cargo, tipo, status, admissao, valorBase, frequencia, telefone);
+        => new(nome, cargo, tipo, status, admissao, valorBase, frequencia, telefone);
 
     /* ===================== LISTAGEM ===================== */
 
@@ -199,7 +198,7 @@ public class ColaboradorServiceTests
             .ReturnsAsync(colaborador);
 
         var command = new AtualizarColaboradorCommand(
-            colaborador.Id, "COL-01", "Juliana Ferreira", "Confeiteira chefe",
+            colaborador.Id, "Juliana Ferreira", "Confeiteira chefe",
             "CLT", "Ativo", null, 2400m, null, null);
 
         var resultado = await _sut.AtualizarAsync(command);
@@ -220,7 +219,7 @@ public class ColaboradorServiceTests
             .ReturnsAsync((Colaborador?)null);
 
         var command = new AtualizarColaboradorCommand(
-            Guid.NewGuid(), null, "Juliana", "Confeiteira", "CLT", "Ativo", null, 1900m, null, null);
+            Guid.NewGuid(), "Juliana", "Confeiteira", "CLT", "Ativo", null, 1900m, null, null);
 
         var resultado = await _sut.AtualizarAsync(command);
 

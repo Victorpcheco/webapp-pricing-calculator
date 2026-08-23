@@ -54,9 +54,13 @@ public class ColaboradorService : IScopedService
 
         var (tipo, status, frequencia) = entrada.Value;
 
+        // Código sequencial gerado pelo backend — o usuário não escolhe o próprio código.
+        var totalExistente = await _colaboradorRepository.ContarPorUsuarioAsync(_currentUser.UsuarioId, ct);
+        var codigo = $"COL-{totalExistente + 1:D3}";
+
         var resultado = Colaborador.Criar(
             usuarioId: _currentUser.UsuarioId,
-            codigo: command.Code,
+            codigo: codigo,
             nome: command.Name,
             cargo: command.Role,
             tipoContratacao: tipo,
@@ -89,7 +93,8 @@ public class ColaboradorService : IScopedService
             return Result<ColaboradorResult>.Failure("Colaborador não encontrado.");
 
         var resultado = colaborador.Atualizar(
-            codigo: command.Code,
+            // Código é imutável após o cadastro — não é reatribuído pelo usuário na edição.
+            codigo: colaborador.Codigo,
             nome: command.Name,
             cargo: command.Role,
             tipoContratacao: tipo,

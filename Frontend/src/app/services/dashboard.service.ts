@@ -58,8 +58,8 @@ export class DashboardService {
       custos: this.custosApi.listar()
     }).pipe(
       map(({ insumos, produtos, simulacoes, custos }) => ({
-        // Histórico vem do mais recente ao mais antigo; 18,50 é o fallback do mockup sem configuração salva
-        valorHora: custos[0]?.hour > 0 ? custos[0].hour : 18.5,
+        // Histórico vem do mais recente ao mais antigo; sem custo salvo, exibe zerado
+        valorHora: custos[0]?.hour > 0 ? custos[0].hour : 0,
         totalInsumos: insumos.meta.total,
         totalReceitas: produtos.meta.total,
         totalSimulacoes: simulacoes.length,

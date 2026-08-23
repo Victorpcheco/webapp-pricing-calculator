@@ -43,7 +43,6 @@ public class ColaboradorValidationTests
     }
 
     private static CriarColaboradorCommand CommandValido(
-        string? codigo = "COL-01",
         string nome = "Juliana Ferreira",
         string cargo = "Confeiteira",
         string tipo = "CLT",
@@ -52,7 +51,7 @@ public class ColaboradorValidationTests
         decimal valorBase = 1900m,
         string? frequencia = null,
         string? telefone = "(11) 98888-1234")
-        => new(codigo, nome, cargo, tipo, status, admissao, valorBase, frequencia, telefone);
+        => new(nome, cargo, tipo, status, admissao, valorBase, frequencia, telefone);
 
     [Fact]
     public void CriarColaboradorCommand_ComDadosValidos_DeveSerValido()
@@ -63,7 +62,7 @@ public class ColaboradorValidationTests
     [Fact]
     public void CriarColaboradorCommand_SemCamposOpcionais_DeveSerValido()
     {
-        Validar(CommandValido(codigo: null, telefone: null, admissao: null)).IsValid.Should().BeTrue();
+        Validar(CommandValido(telefone: null, admissao: null)).IsValid.Should().BeTrue();
     }
 
     [Theory]
@@ -140,12 +139,6 @@ public class ColaboradorValidationTests
     }
 
     [Fact]
-    public void CriarColaboradorCommand_ComCodigoAcimaDe30Caracteres_DeveSerInvalido()
-    {
-        Validar(CommandValido(codigo: new string('a', 31))).IsValid.Should().BeFalse();
-    }
-
-    [Fact]
     public void CriarColaboradorCommand_ComTelefoneAcimaDe20Caracteres_DeveSerInvalido()
     {
         Validar(CommandValido(telefone: new string('9', 21))).IsValid.Should().BeFalse();
@@ -163,7 +156,7 @@ public class ColaboradorValidationTests
     public void AtualizarColaboradorCommand_ComDadosValidos_DeveSerValido()
     {
         var command = new AtualizarColaboradorCommand(
-            Guid.NewGuid(), "COL-01", "Juliana Ferreira", "Confeiteira",
+            Guid.NewGuid(), "Juliana Ferreira", "Confeiteira",
             "CLT", "Ativo", DateTime.UtcNow, 1900m, null, "(11) 98888-1234");
 
         Validar(command).IsValid.Should().BeTrue();
@@ -173,7 +166,7 @@ public class ColaboradorValidationTests
     public void AtualizarColaboradorCommand_ComValorBaseZero_DeveSerInvalido()
     {
         var command = new AtualizarColaboradorCommand(
-            Guid.NewGuid(), null, "Juliana", "Confeiteira", "CLT", "Ativo", null, 0m, null, null);
+            Guid.NewGuid(), "Juliana", "Confeiteira", "CLT", "Ativo", null, 0m, null, null);
 
         Validar(command).IsValid.Should().BeFalse();
     }

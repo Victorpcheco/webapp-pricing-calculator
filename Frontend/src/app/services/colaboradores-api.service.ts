@@ -54,7 +54,6 @@ export interface ColaboradoresListResponse {
 }
 
 export interface SalvarColaboradorCommand {
-  code: string | null;
   name: string;
   role: string;
   contractType: ContractType;

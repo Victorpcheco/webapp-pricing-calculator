@@ -16,6 +16,9 @@ public interface IColaboradorRepository
     /// <summary>Totais globais do usuário, independentes dos filtros da listagem.</summary>
     Task<ColaboradoresResumo> ObterResumoAsync(Guid usuarioId, CancellationToken ct = default);
 
+    /// <summary>Quantidade total já cadastrada pelo usuário — base para o próximo código sequencial.</summary>
+    Task<int> ContarPorUsuarioAsync(Guid usuarioId, CancellationToken ct = default);
+
     Task<Colaborador?> ObterPorIdAsync(Guid id, Guid usuarioId, CancellationToken ct = default);
     Task AdicionarAsync(Colaborador colaborador, CancellationToken ct = default);
     Task AtualizarAsync(Colaborador colaborador, CancellationToken ct = default);

@@ -6,9 +6,6 @@ namespace Application.Colaboradores.Commands;
 // Em records posicionais o atributo precisa ficar no PARÂMETRO do construtor.
 // Com [property: ...] o MVC lança InvalidOperationException ao validar o modelo.
 public record CriarColaboradorCommand(
-    [MaxLength(30, ErrorMessage = "O código deve ter no máximo 30 caracteres.")]
-    string? Code,
-
     [Required(ErrorMessage = "O nome do colaborador é obrigatório.")]
     [MaxLength(80, ErrorMessage = "O nome deve ter no máximo 80 caracteres.")]
     string Name,
