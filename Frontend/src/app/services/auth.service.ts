@@ -63,6 +63,17 @@ export class AuthService {
     return localStorage.getItem('auth_token');
   }
 
+  getUserName(): string {
+    const token = this.getToken();
+    if (!token) return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload['name'] || payload['unique_name'] || payload['email'] || '';
+    } catch {
+      return '';
+    }
+  }
+
   logout() {
     localStorage.removeItem('auth_token');
   }
