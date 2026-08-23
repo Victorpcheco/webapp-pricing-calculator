@@ -3,11 +3,12 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { SpotlightDirective } from '../../shared/directives/spotlight.directive';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, SpotlightDirective],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss'
 })
@@ -49,7 +50,7 @@ export class ResetPasswordComponent implements OnInit {
       next: () => {
         this.toastService.showSuccess('Senha redefinida com sucesso! Você será redirecionado para o login.');
         setTimeout(() => {
-          void this.router.navigate(['/']);
+          void this.router.navigate(['/login']);
         }, 3000);
       },
       error: (err) => {

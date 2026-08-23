@@ -139,6 +139,6 @@ export class AppShellComponent {
 
   logout() {
     this.authService.logout();
-    void this.router.navigate(['/']);
+    void this.router.navigate(['/login']);
   }
 }
