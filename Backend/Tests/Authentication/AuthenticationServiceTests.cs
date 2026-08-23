@@ -109,7 +109,7 @@ public class AuthenticationServiceTests
         _passwordHasherMock.Setup(x => x.Verify(command.SenhaHash, user.SenhaHash))
             .Returns(true);
             
-        _jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user.Id, user.Email))
+        _jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user.Id, user.Email,user.Nome))
             .Returns("valid_jwt_token");
 
         // Act
