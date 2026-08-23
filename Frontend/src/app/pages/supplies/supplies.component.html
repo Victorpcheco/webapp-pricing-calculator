@@ -36,10 +36,11 @@
           <option value="Ingrediente">Ingredientes</option>
           <option value="Embalagem">Embalagens</option>
         </select>
-        <button class="outline-btn" type="button" (click)="clearAll()">Limpar dados</button>
+        <button class="outline-btn" type="button" (click)="clearAll()"
+          [disabled]="loading || !items.length">Limpar dados</button>
       </div>
-      <div class="table-note"><span>{{ visibleCountLabel }}</span></div>
-      <div class="table-scroll" *ngIf="filtered.length">
+      <div class="table-note"><span>{{ loading ? 'Carregando insumos...' : visibleCountLabel }}</span></div>
+      <div class="table-scroll" *ngIf="filtered.length && !loading">
         <table>
           <thead>
             <tr>
@@ -81,7 +82,11 @@
           </tbody>
         </table>
       </div>
-      <div class="empty-state visible" *ngIf="!filtered.length">
+      <div class="empty-state visible" *ngIf="loading">
+        <div class="empty-icon">◇</div><strong>Carregando insumos...</strong>
+        <p>Buscando os itens cadastrados na sua conta.</p>
+      </div>
+      <div class="empty-state visible" *ngIf="!filtered.length && !loading">
         <div class="empty-icon">◇</div><strong>Nenhum item encontrado</strong>
         <p>Altere os filtros ou cadastre um novo ingrediente ou embalagem para começar.</p>
       </div>
@@ -113,13 +118,7 @@
             </div>
           </div>
           <div class="modal-grid">
-            <div class="form-group">
-              <label class="form-label" for="itemCustomId">Código / ID <small
-                  style="font-weight:500; color:#64748b;">(Opcional)</small></label>
-              <input type="text" id="itemCustomId" name="item_custom_id" placeholder="Ex.: INS-01" maxlength="30"
-                [(ngModel)]="formCode">
-            </div>
-            <div class="form-group">
+            <div class="form-group full">
               <label class="form-label" for="itemName">Nome do item <span class="required">*</span></label>
               <input type="text" id="itemName" name="item_name" placeholder="Ex.: Farinha de trigo" maxlength="80"
                 [(ngModel)]="formName" required>
@@ -149,12 +148,13 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button class="cancel-btn" type="button" (click)="closeModal()">Cancelar</button>
-          <button class="primary-btn" type="submit">Salvar</button>
+          <button class="cancel-btn" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
+          <button class="primary-btn" type="submit" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
         </div>
       </form>
     </section>
   </div>
 
   <app-workspace-toast />
+  <app-confirm-dialog />
 </app-shell>
