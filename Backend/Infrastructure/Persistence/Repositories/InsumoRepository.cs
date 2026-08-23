@@ -70,6 +70,20 @@ public class InsumoRepository : IInsumoRepository, IScopedService
             .SingleOrDefaultAsync(i => i.Id == id && i.UsuarioId == usuarioId, ct);
     }
 
+    public async Task<IReadOnlyList<Insumo>> ListarPorIdsAsync(
+        Guid usuarioId,
+        IReadOnlyCollection<Guid> ids,
+        CancellationToken ct = default)
+    {
+        if (ids.Count == 0)
+            return Array.Empty<Insumo>();
+
+        return await _context.Insumos
+            .AsNoTracking()
+            .Where(i => i.UsuarioId == usuarioId && ids.Contains(i.Id))
+            .ToListAsync(ct);
+    }
+
     public async Task AdicionarAsync(Insumo insumo, CancellationToken ct = default)
     {
         await _context.Insumos.AddAsync(insumo, ct);

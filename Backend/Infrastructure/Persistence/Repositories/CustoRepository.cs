@@ -30,6 +30,17 @@ public class CustoRepository : ICustoRepository, IScopedService
             .SingleOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId, ct);
     }
 
+    public async Task<decimal> ObterValorHoraAtualAsync(Guid usuarioId, CancellationToken ct = default)
+    {
+        // Configuração mais recente do usuário; 0 quando ainda não há nenhuma salva
+        return await _context.CustosOperacionais
+            .AsNoTracking()
+            .Where(c => c.UsuarioId == usuarioId)
+            .OrderByDescending(c => c.CriadoEm)
+            .Select(c => c.ValorHora)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task AdicionarAsync(CustoOperacional custo, CancellationToken ct = default)
     {
         await _context.CustosOperacionais.AddAsync(custo, ct);
