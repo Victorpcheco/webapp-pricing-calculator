@@ -24,15 +24,9 @@
             <h3>Informações do produto</h3><span>Obrigatório</span>
           </div>
           <div class="fields-grid">
-            <div class="form-group">
-              <label for="productCustomId">Código / ID do Produto <small
-                  style="font-weight:500; color:#64748b;">(Opcional)</small></label>
-              <input type="text" id="productCustomId" name="productCustomId" placeholder="Ex.: PROD-01" maxlength="30"
-                [(ngModel)]="productCode">
-            </div>
-            <div class="form-group">
+            <div class="form-group full">
               <label for="recipeName">Nome do produto <span class="required">*</span></label>
-              <input type="text" id="recipeName" name="recipeName" placeholder="Ex.: Bolo de chocolate"
+              <input type="text" id="recipeName" name="recipeName" placeholder="Ex.: Bolo de chocolate" maxlength="80"
                 [(ngModel)]="productName" required>
             </div>
             <div class="form-group full">
@@ -84,7 +78,7 @@
           </div>
           <div class="ingredients-list">
             <div class="ingredient-row" *ngFor="let entry of composition; let i = index">
-              <select class="item-select" aria-label="Item cadastrado" [(ngModel)]="entry.itemId"
+              <select class="item-select" aria-label="Item cadastrado" [(ngModel)]="entry.supplyId"
                 [ngModelOptions]="{ standalone: true }">
                 <option *ngFor="let option of supplies" [value]="option.id">{{ option.name }} · {{ option.type }}
                 </option>
@@ -96,15 +90,17 @@
               <button class="remove-btn" type="button" aria-label="Remover item" (click)="removeItem(i)">×</button>
             </div>
           </div>
-          <div class="empty-composition" *ngIf="!composition.length">Nenhum item adicionado. Use o botão acima para
-            começar a composição.</div>
+          <div class="empty-composition" *ngIf="!composition.length && supplies.length">Nenhum item adicionado. Use o
+            botão acima para começar a composição.</div>
+          <div class="empty-composition" *ngIf="!composition.length && !supplies.length && !loading">Você ainda não tem
+            insumos cadastrados. Cadastre ingredientes e embalagens em Meus Insumos para montar a composição.</div>
           <div class="composition-footer"><span>Custo dos materiais:</span><strong>{{ money(materialsCost) }}</strong>
           </div>
         </section>
 
         <div class="form-actions">
-          <button class="ghost-btn" type="button" (click)="clearForm()">Limpar dados</button>
-          <button class="primary-btn" type="submit">Salvar</button>
+          <button class="ghost-btn" type="button" (click)="clearForm()" [disabled]="saving">Limpar dados</button>
+          <button class="primary-btn" type="submit" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
         </div>
       </form>
 
@@ -142,17 +138,18 @@
       <div class="table-toolbar">
         <label class="search-wrap">
           <span>⌕</span>
-          <input type="search" placeholder="Buscar produto por nome ou código..." autocomplete="off"
+          <input type="search" placeholder="Buscar produto por nome..." autocomplete="off"
             [(ngModel)]="search" [ngModelOptions]="{ standalone: true }">
         </label>
         <div style="display:flex; justify-content:flex-end;">
-          <button class="outline-btn" type="button" (click)="clearAllProducts()">Limpar dados</button>
+          <button class="outline-btn" type="button" (click)="clearAllProducts()"
+            [disabled]="loading || !products.length">Limpar dados</button>
         </div>
       </div>
       <div class="table-note">
-        <span>{{ visibleCountLabel }}</span>
+        <span>{{ loading ? 'Carregando produtos...' : visibleCountLabel }}</span>
       </div>
-      <div class="table-scroll" *ngIf="filteredProducts.length">
+      <div class="table-scroll" *ngIf="filteredProducts.length && !loading">
         <table>
           <thead>
             <tr>
@@ -179,7 +176,7 @@
               <td data-label="Tempo">{{ formatTime(item.productionTime) }}</td>
               <td data-label="Custo Unitário"><span class="cost-value">{{ money(item.unitCost) }} <small>/ {{
                     item.yieldName || 'porção' }}</small></span></td>
-              <td data-label="Custo Total"><strong style="color:#334155;">{{ money(item.total) }}</strong></td>
+              <td data-label="Custo Total"><strong style="color:#334155;">{{ money(item.totalCost) }}</strong></td>
               <td data-label="Ações">
                 <div class="actions">
                   <button class="icon-btn" type="button" aria-label="Editar produto"
@@ -192,7 +189,12 @@
           </tbody>
         </table>
       </div>
-      <div class="empty-state visible" *ngIf="!filteredProducts.length">
+      <div class="empty-state visible" *ngIf="loading">
+        <div class="empty-icon">▦</div>
+        <strong>Carregando produtos...</strong>
+        <p>Buscando as fichas técnicas cadastradas na sua conta.</p>
+      </div>
+      <div class="empty-state visible" *ngIf="!filteredProducts.length && !loading">
         <div class="empty-icon">▦</div>
         <strong>Nenhum produto cadastrado</strong>
         <p>Preencha o formulário acima e clique em "Salvar" para registrar seus produtos e receitas.</p>
@@ -201,4 +203,5 @@
   </main>
 
   <app-workspace-toast />
+  <app-confirm-dialog />
 </app-shell>

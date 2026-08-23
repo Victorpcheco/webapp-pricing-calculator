@@ -140,6 +140,9 @@
 .form-group {
   display: grid;
   gap: 8px;
+  // Sem isto, um campo sem texto de ajuda ao lado de um que tem
+  // ganha a sobra da linha e o input estica de 50px para 63px
+  align-content: start;
 }
 
 .form-group.full {
@@ -317,11 +320,48 @@ select:focus {
 }
 
 .live-dot {
+  position: relative;
+  flex-shrink: 0;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #86efac;
   box-shadow: 0 0 0 5px rgba(134, 239, 172, .18);
+  animation: live-dot-breathe 2.4s ease-in-out infinite;
+}
+
+/* Anel que expande e some, como um ping de radar: sinaliza cálculo ao vivo. */
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: live-dot-ping 2.4s cubic-bezier(.22, .61, .36, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes live-dot-ping {
+  0% { opacity: .5; transform: scale(1); }
+  70% { opacity: 0; transform: scale(3.4); }
+  100% { opacity: 0; transform: scale(3.4); }
+}
+
+@keyframes live-dot-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Indicador de atividade é enfeite: com movimento reduzido, fica estático. */
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .live-dot::after {
+    animation: none;
+  }
+
+  .live-dot::after {
+    opacity: 0;
+  }
 }
 
 .result-hero p {

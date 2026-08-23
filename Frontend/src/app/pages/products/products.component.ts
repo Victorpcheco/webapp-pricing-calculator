@@ -1,73 +1,106 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
-import { CompositionEntry, MockStoreService, Product, Supply } from '../../services/mock-store.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  CompositionInput,
+  ProductItem,
+  ProductionType,
+  ProdutosApiService,
+  SalvarProdutoCommand
+} from '../../services/produtos-api.service';
+import { InsumoItem, InsumosApiService } from '../../services/insumos-api.service';
+import { MockStoreService } from '../../services/mock-store.service';
 
 /**
  * ============================================================
  * BACKEND (C# / ASP.NET) — PRODUTOS / FICHA TÉCNICA
- * GET    /api/produtos          → lista
+ * GET    /api/produtos          → lista + meta.hourlyRate
  * POST   /api/produtos          → cria
- * PUT    /api/produtos/{id}     → atualiza
+ * PUT    /api/produtos/{id}     → atualiza (substitui a composição)
  * DELETE /api/produtos/{id}     → remove
- * HEADERS: Authorization: Bearer <token>
+ * DELETE /api/produtos          → limpa todas
+ * HEADERS: Authorization: Bearer <token> (authInterceptor)
  *
- * Cálculo (idêntico ao mockup):
- *   materiais = Σ (quantidade usada × custo unitário do insumo)
- *   trabalho  = (minutos ÷ 60) × valor da hora
- *   total     = materiais + trabalho
- *   unitário  = total ÷ rendimento
+ * Os custos são recalculados pelo backend a cada leitura, com o preço
+ * atual dos insumos e o valor da hora vigente. O cálculo repetido aqui
+ * serve só para a prévia em tempo real enquanto o usuário digita.
  * ============================================================
  */
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AppShellComponent, WorkspaceToastComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'
 })
-export class ProductsComponent {
+export class ProductsComponent implements OnInit {
+  private readonly api = inject(ProdutosApiService);
+  private readonly insumosApi = inject(InsumosApiService);
+  // Mantido para propagar as fichas às telas ainda não integradas (Precificação, Resultados, Dashboard)
   private readonly store = inject(MockStoreService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   @ViewChild(WorkspaceToastComponent) toast!: WorkspaceToastComponent;
+  @ViewChild(ConfirmDialogComponent) confirmDialog!: ConfirmDialogComponent;
+
+  loading = false;
+  saving = false;
+
+  products: ProductItem[] = [];
+  supplies: InsumoItem[] = [];
+  hourlyRate = 0;
 
   editId = '';
-  productCode = '';
-  productName = 'Bolo de chocolate';
-  productionType: 'Produto inteiro' | 'Porções' = 'Porções';
-  yieldAmount: number | null = 10;
-  yieldName = 'fatia';
-  productionTime: number | null = 60;
+  productName = '';
+  productionType: ProductionType = 'Porções';
+  yieldAmount: number | null = 1;
+  yieldName = 'porção';
+  productionTime: number | null = 0;
 
-  composition: CompositionEntry[] = this.store.demoComposition.map(entry => ({ ...entry }));
+  composition: CompositionInput[] = [];
 
   search = '';
 
-  /* ===================== DADOS ===================== */
-
-  get supplies(): Supply[] {
-    return this.store.supplies;
+  ngOnInit() {
+    this.carregarTudo();
   }
 
-  get hourlyRate(): number {
-    return this.store.hourlyRate;
-  }
+  /* ===================== CARGA ===================== */
 
-  get products(): Product[] {
-    return this.store.products;
-  }
+  private carregarTudo() {
+    this.loading = true;
 
-  get filteredProducts(): Product[] {
-    const search = this.search.toLowerCase().trim();
-    return this.products.filter(item => {
-      const name = (item.name || '').toLowerCase();
-      const code = (item.code || '').toLowerCase();
-      return name.includes(search) || code.includes(search);
+    // As duas listas são independentes: uma só espera pela mais lenta
+    forkJoin({
+      produtos: this.api.listar(),
+      insumos: this.insumosApi.listar()
+    }).subscribe({
+      next: ({ produtos, insumos }) => {
+        this.products = produtos.data;
+        this.hourlyRate = produtos.meta.hourlyRate;
+        this.supplies = insumos.data;
+        this.sincronizarStore();
+        this.loading = false;
+      },
+      error: err => {
+        this.toast.show(this.mensagemErro(err, 'Erro ao carregar os produtos.'));
+        this.loading = false;
+      }
     });
+  }
+
+  /* ===================== LISTA ===================== */
+
+  get filteredProducts(): ProductItem[] {
+    const search = this.search.toLowerCase().trim();
+    if (!search) return this.products;
+    return this.products.filter(item => (item.name || '').toLowerCase().includes(search));
   }
 
   get visibleCountLabel(): string {
@@ -82,19 +115,27 @@ export class ProductsComponent {
     return `${total} ${total === 1 ? 'item' : 'itens'}`;
   }
 
-  entryBaseUnit(entry: CompositionEntry): string {
-    const supply = this.store.findSupply(entry.itemId);
-    return supply ? this.store.baseUnit(supply.unit) : 'un';
+  private findSupply(supplyId: string): InsumoItem | undefined {
+    return this.supplies.find(item => item.id === supplyId);
   }
 
-  entryCost(entry: CompositionEntry): number {
-    return this.store.compositionCost(entry);
+  entryBaseUnit(entry: CompositionInput): string {
+    return this.findSupply(entry.supplyId)?.baseUnit ?? 'un';
+  }
+
+  entryCost(entry: CompositionInput): number {
+    const supply = this.findSupply(entry.supplyId);
+    return supply ? Math.max(0, Number(entry.amount) || 0) * supply.unitCost : 0;
   }
 
   addItem() {
     const first = this.supplies[0];
-    if (!first) return;
-    this.composition = [...this.composition, { itemId: first.id, amount: 0 }];
+    if (!first) {
+      this.toast.show('Cadastre um insumo antes de montar a composição.');
+      return;
+    }
+
+    this.composition = [...this.composition, { supplyId: first.id, amount: 0 }];
 
     setTimeout(() => {
       const inputs = document.querySelectorAll<HTMLInputElement>('.amount-input');
@@ -106,7 +147,7 @@ export class ProductsComponent {
     this.composition = this.composition.filter((_, position) => position !== index);
   }
 
-  /* ===================== CÁLCULO ===================== */
+  /* ===================== PRÉVIA (client-side) ===================== */
 
   get materialsCost(): number {
     return this.composition.reduce((total, entry) => total + this.entryCost(entry), 0);
@@ -160,6 +201,8 @@ export class ProductsComponent {
       : 'Configure o valor da hora na tela de custos operacionais.';
   }
 
+  /* ===================== FORMATAÇÃO ===================== */
+
   money(value: number): string {
     return this.currency.format(Number.isFinite(value) ? value : 0);
   }
@@ -172,14 +215,13 @@ export class ProductsComponent {
     return rest ? `${hours}h ${rest}min` : `${hours}h`;
   }
 
-  yieldLabel(item: Product): string {
+  yieldLabel(item: ProductItem): string {
     const unitName = item.yieldName || 'porção';
     return `${item.yieldAmount} ${unitName}${item.yieldAmount === 1 ? '' : 's'}`;
   }
 
-  productSubtitle(item: Product): string {
+  productSubtitle(item: ProductItem): string {
     const date = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('pt-BR') : '';
-    if (item.code) return `Cód: ${item.code}`;
     return date ? `Atualizado em ${date}` : 'Produto cadastrado';
   }
 
@@ -187,6 +229,7 @@ export class ProductsComponent {
 
   onSubmit(event: Event) {
     event.preventDefault();
+    if (this.saving) return;
 
     const name = this.productName.trim();
     if (!name) {
@@ -195,69 +238,166 @@ export class ProductsComponent {
       return;
     }
 
-    const code = this.productCode.trim();
-    const recipeId = this.editId || code || `recipe_${Date.now()}`;
-    const product: Product = {
-      id: recipeId,
-      code,
+    const semInsumo = this.composition.find(entry => !entry.supplyId);
+    if (semInsumo) {
+      this.toast.show('Há um item da composição sem insumo selecionado.');
+      return;
+    }
+
+    const semQuantidade = this.composition.find(entry => !(Number(entry.amount) > 0));
+    if (semQuantidade) {
+      this.toast.show('Informe a quantidade usada de cada insumo.');
+      return;
+    }
+
+    const command: SalvarProdutoCommand = {
       name,
+      productionType: this.productionType,
       yieldAmount: this.yieldValue,
       yieldName: this.unitName,
       productionTime: this.minutes,
-      composition: this.composition.map(entry => ({ ...entry })),
-      materials: this.materialsCost,
-      labor: this.laborCost,
-      total: this.totalCost,
-      unitCost: this.portionCost,
-      updatedAt: new Date().toISOString()
+      composition: this.composition.map(entry => ({
+        supplyId: entry.supplyId,
+        amount: Number(entry.amount)
+      }))
     };
 
-    const existingIndex = this.products.findIndex(item => item.id === recipeId);
-    if (existingIndex >= 0) {
-      this.store.products = this.products.map(item => (item.id === recipeId ? product : item));
-    } else {
-      this.store.products = [product, ...this.products];
-    }
+    this.saving = true;
 
+    if (this.editId) {
+      this.api.atualizar(this.editId, command).subscribe({
+        next: atualizado => this.onSalvoComSucesso(atualizado),
+        error: err => {
+          this.toast.show(this.mensagemErro(err, 'Erro ao atualizar o produto.'));
+          this.saving = false;
+        }
+      });
+    } else {
+      this.api.criar(command).subscribe({
+        next: criado => this.onSalvoComSucesso(criado),
+        error: err => {
+          this.toast.show(this.mensagemErro(err, 'Erro ao salvar o produto.'));
+          this.saving = false;
+        }
+      });
+    }
+  }
+
+  private onSalvoComSucesso(item: ProductItem) {
+    this.products = this.editId
+      ? this.products.map(current => (current.id === item.id ? item : current))
+      : [item, ...this.products];
+
+    this.sincronizarStore();
     this.editId = '';
+    this.saving = false;
     this.toast.show('Informação atualizada com sucesso!');
   }
 
-  editProduct(item: Product) {
+  editProduct(item: ProductItem) {
     this.editId = item.id;
-    this.productCode = item.code || '';
     this.productName = item.name || '';
+    this.productionType = item.productionType || 'Porções';
     this.yieldAmount = item.yieldAmount || 1;
     this.yieldName = item.yieldName || 'porção';
     this.productionTime = item.productionTime || 0;
-    this.composition = Array.isArray(item.composition) ? item.composition.map(entry => ({ ...entry })) : [];
+    this.composition = item.composition.map(entry => ({
+      supplyId: entry.supplyId,
+      amount: entry.amount
+    }));
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.getElementById('recipeName')?.focus();
   }
 
-  deleteProduct(item: Product) {
-    if (!window.confirm(`Deseja realmente excluir o produto "${item.name || 'selecionado'}"?`)) return;
-    this.store.products = this.products.filter(current => current.id !== item.id);
-    this.toast.show('Produto excluído com sucesso!');
+  async deleteProduct(item: ProductItem) {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Excluir produto',
+      message: `Tem certeza que deseja excluir "${item.name || 'este produto'}"? Esta ação não pode ser desfeita.`,
+      confirmLabel: 'Excluir',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    this.api.excluir(item.id).subscribe({
+      next: () => {
+        this.products = this.products.filter(current => current.id !== item.id);
+        this.sincronizarStore();
+        if (this.editId === item.id) this.clearForm(false);
+        this.toast.show('Produto excluído com sucesso!');
+      },
+      error: err => this.toast.show(this.mensagemErro(err, 'Erro ao excluir o produto.'))
+    });
   }
 
-  clearForm() {
+  async clearAllProducts() {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Limpar dados',
+      message: 'Todos os produtos cadastrados serão removidos permanentemente. Deseja continuar?',
+      confirmLabel: 'Limpar tudo',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    this.api.limparTudo().subscribe({
+      next: () => {
+        this.products = [];
+        this.sincronizarStore();
+        this.clearForm(false);
+        this.search = '';
+        this.toast.show('Produtos limpos com sucesso!');
+      },
+      error: err => this.toast.show(this.mensagemErro(err, 'Erro ao limpar os produtos.'))
+    });
+  }
+
+  clearForm(avisar = true) {
     this.editId = '';
-    this.productCode = '';
     this.productName = '';
+    this.productionType = 'Porções';
     this.yieldAmount = 1;
     this.yieldName = 'unidade';
     this.productionTime = 0;
     this.composition = [];
-    this.toast.show('Dados do formulário limpos!');
+    if (avisar) this.toast.show('Dados do formulário limpos!');
   }
 
-  clearAllProducts() {
-    if (!window.confirm('Deseja excluir todos os produtos cadastrados?')) return;
-    this.store.products = [];
-    this.editId = '';
-    this.composition = [];
-    this.toast.show('Produtos limpos com sucesso!');
+  /* ===================== APOIO ===================== */
+
+  /** Propaga as fichas para Precificação, Resultados e Dashboard, que ainda leem do store. */
+  private sincronizarStore() {
+    this.store.products = this.products.map(item => ({
+      id: item.id,
+      name: item.name,
+      yieldAmount: item.yieldAmount,
+      yieldName: item.yieldName,
+      productionTime: item.productionTime,
+      composition: item.composition.map(entry => ({
+        itemId: entry.supplyId,
+        amount: entry.amount
+      })),
+      materials: item.materialsCost,
+      labor: item.laborCost,
+      total: item.totalCost,
+      unitCost: item.unitCost,
+      updatedAt: item.updatedAt
+    }));
+  }
+
+  /** Extrai a mensagem do backend: { error } do Result ou { errors } das Data Annotations. */
+  private mensagemErro(err: unknown, fallback: string): string {
+    const body = (err as HttpErrorResponse)?.error;
+
+    if (typeof body === 'string' && body.trim()) return body;
+    if (body?.error) return body.error;
+
+    if (body?.errors) {
+      const primeira = Object.values(body.errors as Record<string, string[]>)
+        .flat()
+        .find(mensagem => !!mensagem);
+      if (primeira) return primeira;
+    }
+
+    return fallback;
   }
 }
