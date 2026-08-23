@@ -1,0 +1,160 @@
+<app-shell breadcrumb="Meus Insumos" breadcrumbParent="Cadastros">
+  <main class="content">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Matéria-prima do negócio</div>
+        <h1>Meus Insumos</h1>
+        <p>Cadastre tudo o que participa da produção. O MeuPreço padroniza as unidades e revela o custo exato por
+          grama, mililitro ou unidade.</p>
+      </div>
+      <div class="heading-actions">
+        <button class="primary-btn" type="button" (click)="openModal()"><span class="plus">+</span> Novo insumo</button>
+      </div>
+    </div>
+
+    <section class="stats-grid" aria-label="Resumo dos insumos">
+      <article class="stat-card"><span class="stat-icon">◇</span>
+        <div class="stat-copy"><strong>{{ totalItems }}</strong><span>Itens cadastrados</span></div>
+      </article>
+      <article class="stat-card"><span class="stat-icon green">●</span>
+        <div class="stat-copy"><strong>{{ ingredientCount }}</strong><span>Ingredientes</span></div>
+      </article>
+      <article class="stat-card"><span class="stat-icon amber">□</span>
+        <div class="stat-copy"><strong>{{ packageCount }}</strong><span>Embalagens</span></div>
+      </article>
+      <article class="stat-card"><span class="stat-icon violet">R$</span>
+        <div class="stat-copy"><strong>{{ purchaseValue }}</strong><span>Valor das compras</span></div>
+      </article>
+    </section>
+
+    <section class="table-card">
+      <div class="table-toolbar">
+        <label class="search-wrap"><span>⌕</span><input type="search" placeholder="Buscar por nome do item..."
+            autocomplete="off" [(ngModel)]="search" [ngModelOptions]="{ standalone: true }"></label>
+        <select aria-label="Filtrar por tipo" [(ngModel)]="typeFilter" [ngModelOptions]="{ standalone: true }">
+          <option value="all">Todos os tipos</option>
+          <option value="Ingrediente">Ingredientes</option>
+          <option value="Embalagem">Embalagens</option>
+        </select>
+        <button class="outline-btn" type="button" (click)="clearAll()"
+          [disabled]="loading || !items.length">Limpar dados</button>
+      </div>
+      <div class="table-note"><span>{{ loading ? 'Carregando insumos...' : visibleCountLabel }}</span></div>
+      <div class="table-scroll" *ngIf="filtered.length && !loading">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Tipo</th>
+              <th>Compra cadastrada</th>
+              <th>Preço total</th>
+              <th>Custo padronizado</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filtered">
+              <td data-label="Item">
+                <div class="item-cell">
+                  <span class="item-avatar" [class.package]="item.type === 'Embalagem'">{{ initials(item.name) }}</span>
+                  <span class="item-copy">
+                    <strong>{{ item.name }}</strong>
+                    <span>{{ itemSubtitle(item) }}</span>
+                  </span>
+                </div>
+              </td>
+              <td data-label="Tipo"><span class="type-badge" [class.package]="item.type === 'Embalagem'">{{ item.type
+                  }}</span></td>
+              <td data-label="Compra">{{ number(item.quantity) }} {{ formatUnit(item.unit) }} <span
+                  style="color:#94a3b8;">→</span> {{ number(baseQuantity(item)) }} {{ baseUnit(item) }}</td>
+              <td data-label="Preço total"><strong style="color:#334155;">{{ money(item.price) }}</strong></td>
+              <td data-label="Custo unitário"><span class="cost-value">{{ formatUnitCost(unitCost(item)) }} <small>/ {{
+                    baseUnit(item) }}</small></span></td>
+              <td data-label="Ações">
+                <div class="actions">
+                  <button class="icon-btn" type="button" [attr.aria-label]="'Editar ' + item.name"
+                    (click)="openModal(item)">✎</button>
+                  <button class="icon-btn delete" type="button" [attr.aria-label]="'Excluir ' + item.name"
+                    (click)="deleteItem(item)">×</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state visible" *ngIf="loading">
+        <div class="empty-icon">◇</div><strong>Carregando insumos...</strong>
+        <p>Buscando os itens cadastrados na sua conta.</p>
+      </div>
+      <div class="empty-state visible" *ngIf="!filtered.length && !loading">
+        <div class="empty-icon">◇</div><strong>Nenhum item encontrado</strong>
+        <p>Altere os filtros ou cadastre um novo ingrediente ou embalagem para começar.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- =============================================
+       MODAL DE CADASTRO / EDIÇÃO
+  ============================================= -->
+  <div class="modal-backdrop" [class.open]="modalOpen" [attr.aria-hidden]="!modalOpen" (click)="onBackdropClick($event)">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="modalTitle">{{ modalTitle }}</h2>
+          <p>Informe os dados da última compra para calcular o custo unitário.</p>
+        </div>
+        <button class="close-btn" type="button" aria-label="Fechar modal" (click)="closeModal()">×</button>
+      </div>
+      <form (ngSubmit)="onSubmit($event)" novalidate>
+        <div class="modal-body">
+          <div class="type-selector" role="radiogroup" aria-label="Tipo do item">
+            <div class="type-option">
+              <input type="radio" id="typeIngredient" name="item_type" value="Ingrediente" [(ngModel)]="formType">
+              <label for="typeIngredient">● Ingrediente</label>
+            </div>
+            <div class="type-option">
+              <input type="radio" id="typePackage" name="item_type" value="Embalagem" [(ngModel)]="formType">
+              <label for="typePackage">□ Embalagem</label>
+            </div>
+          </div>
+          <div class="modal-grid">
+            <div class="form-group full">
+              <label class="form-label" for="itemName">Nome do item <span class="required">*</span></label>
+              <input type="text" id="itemName" name="item_name" placeholder="Ex.: Farinha de trigo" maxlength="80"
+                [(ngModel)]="formName" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quantity">Quantidade comprada <span class="required">*</span></label>
+              <input type="number" id="quantity" name="quantity" min="0.001" step="0.001" placeholder="5"
+                [(ngModel)]="formQuantity" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="unit">Unidade da compra <span class="required">*</span></label>
+              <select id="unit" name="unit" [(ngModel)]="formUnit" required>
+                <option *ngFor="let option of unitOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label class="form-label" for="price">Preço total pago <span class="required">*</span></label>
+              <div class="input-wrap"><span class="input-prefix">R$</span><input class="has-prefix" type="text"
+                  id="price" name="price" inputmode="decimal" placeholder="24,90" autocomplete="off"
+                  [(ngModel)]="formPrice" (blur)="onPriceBlur()" required></div>
+              <p class="field-help">Informe o valor total pago pela quantidade cadastrada acima.</p>
+            </div>
+          </div>
+          <div class="unit-preview" aria-live="polite"><span class="preview-icon">÷</span>
+            <div class="preview-copy"><span>Prévia do custo unitário</span><strong>{{ unitCostPreview
+                }}</strong><small>{{ conversionPreview }}</small></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="cancel-btn" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
+          <button class="primary-btn" type="submit" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <app-workspace-toast />
+  <app-confirm-dialog />
+</app-shell>

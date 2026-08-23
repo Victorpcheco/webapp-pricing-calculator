@@ -1,0 +1,207 @@
+<app-shell breadcrumb="Meus Produtos" breadcrumbParent="Produtos">
+  <main class="content">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Custo real do produto</div>
+        <h1>Meus Produtos</h1>
+        <p>Monte a composição, informe o tempo de produção e o rendimento. O MeuPreço calcula o custo total e quanto
+          custa cada porção produzida.</p>
+      </div>
+    </div>
+
+    <div class="recipe-layout">
+      <form class="card form-card" (ngSubmit)="onSubmit($event)" novalidate>
+        <div class="card-head">
+          <div>
+            <h2>Estrutura do produto</h2>
+            <p>Os cálculos são atualizados a cada alteração na composição.</p>
+          </div>
+          <span class="source-badge"><span class="source-dot"></span><span>{{ sourceBadgeText }}</span></span>
+        </div>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">01</span>
+            <h3>Informações do produto</h3><span>Obrigatório</span>
+          </div>
+          <div class="fields-grid">
+            <div class="form-group full">
+              <label for="recipeName">Nome do produto <span class="required">*</span></label>
+              <input type="text" id="recipeName" name="recipeName" placeholder="Ex.: Bolo de chocolate" maxlength="80"
+                [(ngModel)]="productName" required>
+            </div>
+            <div class="form-group full">
+              <label>Tipo de produção</label>
+              <div class="production-type">
+                <div class="production-option">
+                  <input type="radio" id="typeWhole" name="production_type" value="Produto inteiro"
+                    [(ngModel)]="productionType">
+                  <label for="typeWhole">Produto inteiro</label>
+                </div>
+                <div class="production-option">
+                  <input type="radio" id="typePortion" name="production_type" value="Porções"
+                    [(ngModel)]="productionType">
+                  <label for="typePortion">Porções</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="yieldAmount">Rendimento <span class="required">*</span></label>
+              <input type="number" id="yieldAmount" name="yieldAmount" min="1" step="1" [(ngModel)]="yieldAmount"
+                required>
+              <p class="helper">Quantidade total produzida pela receita.</p>
+            </div>
+            <div class="form-group">
+              <label for="yieldName">Nome da unidade <span class="required">*</span></label>
+              <input type="text" id="yieldName" name="yieldName" placeholder="Ex.: fatia, pote, brigadeiro"
+                [(ngModel)]="yieldName" required>
+            </div>
+            <div class="form-group full">
+              <label for="productionTime">Tempo total de produção <small>Inclua preparo e finalização</small></label>
+              <div class="input-wrap"><input class="has-suffix" type="number" id="productionTime" name="productionTime"
+                  min="0" step="1" [(ngModel)]="productionTime"><span class="input-suffix">minutos</span></div>
+              <p class="helper">O tempo será multiplicado pelo valor da sua hora de trabalho.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-title"><span class="section-number">02</span>
+            <h3>Composição dos materiais</h3><span>{{ compositionCountLabel }}</span>
+          </div>
+          <div class="composition-head">
+            <p class="composition-help">Adicione ingredientes e embalagens cadastrados e informe a quantidade utilizada
+              nesta produção.</p>
+            <button class="add-btn" type="button" (click)="addItem()">＋ Adicionar item</button>
+          </div>
+          <div class="ingredient-header"><span>Item cadastrado</span><span>Quantidade usada</span><span>Unidade</span>
+            <span style="text-align:right;">Custo</span><span></span>
+          </div>
+          <div class="ingredients-list">
+            <div class="ingredient-row" *ngFor="let entry of composition; let i = index">
+              <select class="item-select" aria-label="Item cadastrado" [(ngModel)]="entry.supplyId"
+                [ngModelOptions]="{ standalone: true }">
+                <option *ngFor="let option of supplies" [value]="option.id">{{ option.name }} · {{ option.type }}
+                </option>
+              </select>
+              <input class="amount-input" type="number" min="0" step="0.01" aria-label="Quantidade usada"
+                [(ngModel)]="entry.amount" [ngModelOptions]="{ standalone: true }">
+              <span class="unit-box">{{ entryBaseUnit(entry) }}</span>
+              <span class="row-cost">{{ money(entryCost(entry)) }}</span>
+              <button class="remove-btn" type="button" aria-label="Remover item" (click)="removeItem(i)">×</button>
+            </div>
+          </div>
+          <div class="empty-composition" *ngIf="!composition.length && supplies.length">Nenhum item adicionado. Use o
+            botão acima para começar a composição.</div>
+          <div class="empty-composition" *ngIf="!composition.length && !supplies.length && !loading">Você ainda não tem
+            insumos cadastrados. Cadastre ingredientes e embalagens em Meus Insumos para montar a composição.</div>
+          <div class="composition-footer"><span>Custo dos materiais:</span><strong>{{ money(materialsCost) }}</strong>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button class="ghost-btn" type="button" (click)="clearForm()" [disabled]="saving">Limpar dados</button>
+          <button class="primary-btn" type="submit" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
+        </div>
+      </form>
+
+      <aside class="card summary-card" aria-live="polite">
+        <div class="result-hero">
+          <div class="result-label"><span class="live-dot"></span> Custo por <span>{{ unitName }}</span></div>
+          <div class="portion-value"><span>{{ money(portionCost) }}</span><small>{{ yieldSummary }}</small></div>
+          <p>Este é o valor mínimo necessário para produzir cada porção, antes da margem de lucro.</p>
+        </div>
+        <div class="breakdown">
+          <div class="breakdown-title">
+            <h3>Composição do custo</h3><span>Cálculo atual</span>
+          </div>
+          <div class="breakdown-list">
+            <div class="breakdown-row"><span>Ingredientes e embalagens</span><strong>{{ money(materialsCost)
+                }}</strong></div>
+            <div class="breakdown-row"><span>Tempo de produção</span><strong>{{ formatTime(minutes) }}</strong></div>
+            <div class="breakdown-row"><span>Valor da hora utilizado</span><strong>{{ money(hourlyRate) }}</strong>
+            </div>
+            <div class="breakdown-row"><span>Custo do trabalho</span><strong>{{ money(laborCost) }}</strong></div>
+            <div class="breakdown-row total"><span>Custo total do produto</span><strong>{{ money(totalCost)
+                }}</strong></div>
+          </div>
+        </div>
+        <div class="hour-source">
+          <div class="hour-source-head"><strong>{{ hourSourceTitle }}</strong><a routerLink="/meus-custos">Configurar</a>
+          </div>
+          <p>{{ hourSourceText }}</p>
+        </div>
+        <div class="calculation-status"><span class="status-icon">✓</span><span>{{ calculationStatus }}</span></div>
+      </aside>
+    </div>
+
+    <section class="table-card" style="margin-top: 24px;">
+      <div class="table-toolbar">
+        <label class="search-wrap">
+          <span>⌕</span>
+          <input type="search" placeholder="Buscar produto por nome..." autocomplete="off"
+            [(ngModel)]="search" [ngModelOptions]="{ standalone: true }">
+        </label>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="outline-btn" type="button" (click)="clearAllProducts()"
+            [disabled]="loading || !products.length">Limpar dados</button>
+        </div>
+      </div>
+      <div class="table-note">
+        <span>{{ loading ? 'Carregando produtos...' : visibleCountLabel }}</span>
+      </div>
+      <div class="table-scroll" *ngIf="filteredProducts.length && !loading">
+        <table>
+          <thead>
+            <tr>
+              <th>Produto / Nome</th>
+              <th>Rendimento</th>
+              <th>Tempo</th>
+              <th>Custo Unitário</th>
+              <th>Custo Total</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredProducts">
+              <td data-label="Produto">
+                <div class="item-cell">
+                  <span class="item-avatar">▦</span>
+                  <div class="item-copy">
+                    <strong>{{ item.name }}</strong>
+                    <span>{{ productSubtitle(item) }}</span>
+                  </div>
+                </div>
+              </td>
+              <td data-label="Rendimento">{{ yieldLabel(item) }}</td>
+              <td data-label="Tempo">{{ formatTime(item.productionTime) }}</td>
+              <td data-label="Custo Unitário"><span class="cost-value">{{ money(item.unitCost) }} <small>/ {{
+                    item.yieldName || 'porção' }}</small></span></td>
+              <td data-label="Custo Total"><strong style="color:#334155;">{{ money(item.totalCost) }}</strong></td>
+              <td data-label="Ações">
+                <div class="actions">
+                  <button class="icon-btn" type="button" aria-label="Editar produto"
+                    (click)="editProduct(item)">✎</button>
+                  <button class="icon-btn delete" type="button" aria-label="Excluir produto"
+                    (click)="deleteProduct(item)">×</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state visible" *ngIf="loading">
+        <div class="empty-icon">▦</div>
+        <strong>Carregando produtos...</strong>
+        <p>Buscando as fichas técnicas cadastradas na sua conta.</p>
+      </div>
+      <div class="empty-state visible" *ngIf="!filteredProducts.length && !loading">
+        <div class="empty-icon">▦</div>
+        <strong>Nenhum produto cadastrado</strong>
+        <p>Preencha o formulário acima e clique em "Salvar" para registrar seus produtos e receitas.</p>
+      </div>
+    </section>
+  </main>
+
+  <app-workspace-toast />
+  <app-confirm-dialog />
+</app-shell>

@@ -27,6 +27,22 @@ export class RegisterComponent {
 
   isSubmitting = false;
 
+  formatPhone(): void {
+    const phoneControl = this.registerForm.controls.telefone;
+    const digits = phoneControl.value.replace(/\D/g, '').slice(0, 11);
+    let formattedPhone = digits;
+
+    if (digits.length > 2 && digits.length <= 10) {
+      formattedPhone = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    } else if (digits.length > 10) {
+      formattedPhone = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    }
+
+    if (formattedPhone !== phoneControl.value) {
+      phoneControl.setValue(formattedPhone, { emitEvent: false });
+    }
+  }
+
   onSubmit(event: Event) {
     event.preventDefault();
 

@@ -27,7 +27,7 @@ export class LoginComponent {
   onSubmit(event: Event) {
     event.preventDefault();
 
-    if (this.loginForm.invalid) {
+    if (this.loginForm.invalid || this.isSubmitting) {
       this.loginForm.markAllAsTouched();
       return;
     }
@@ -43,7 +43,9 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.toastService.showError(err.error?.error || 'Erro ao realizar login');
+        this.toastService.showError(
+          err.error?.Error || err.error?.error || 'Erro ao realizar login'
+        );
       }
     });
   }

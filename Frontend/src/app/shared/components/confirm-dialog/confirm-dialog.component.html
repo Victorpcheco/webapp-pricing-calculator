@@ -1,0 +1,29 @@
+<div class="backdrop" [class.visible]="visible" (click)="cancel()" aria-hidden="true"></div>
+
+<div class="dialog" [class.visible]="visible" role="alertdialog" [attr.aria-modal]="visible"
+  [attr.aria-labelledby]="visible ? 'dialog-title' : null" (click)="$event.stopPropagation()">
+
+  <div class="dialog-icon" [class.danger]="variant === 'danger'" [class.warning]="variant === 'warning'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+      <path d="M10 11v6"></path>
+      <path d="M14 11v6"></path>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    </svg>
+  </div>
+
+  <div class="dialog-body">
+    <h3 id="dialog-title">{{ title }}</h3>
+    <p>{{ message }}</p>
+  </div>
+
+  <div class="dialog-actions">
+    <button class="btn-cancel" type="button" (click)="cancel()">Cancelar</button>
+    <button class="btn-confirm" [class.danger]="variant === 'danger'" [class.warning]="variant === 'warning'"
+      type="button" (click)="confirm()">
+      {{ confirmLabel }}
+    </button>
+  </div>
+</div>

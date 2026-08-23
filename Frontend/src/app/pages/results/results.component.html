@@ -1,0 +1,129 @@
+<app-shell breadcrumb="Meus Resultados" breadcrumbParent="Gestão financeira">
+  <main class="content">
+
+    <!-- === TÍTULO DA PÁGINA === -->
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Tomada de decisão</div>
+        <h1>Meus Resultados</h1>
+        <p>Acompanhe o desempenho financeiro de cada produto. Identifique o que gera lucro, o que está no limite e o
+          que precisa de ajuste.</p>
+      </div>
+    </div>
+
+    <!-- Barra de Filtros por Período -->
+    <div class="period-filter-bar">
+      <div class="filter-label">
+        <span>📅 Período de Análise:</span>
+      </div>
+      <div class="period-pill-group" role="group" aria-label="Filtro de período">
+        <button type="button" class="period-pill" *ngFor="let period of periods"
+          [class.active]="activePeriod === period.value" (click)="setPeriod(period.value)">{{ period.label }}</button>
+      </div>
+      <div class="custom-date-range" [class.open]="activePeriod === 'custom'">
+        <input type="date" aria-label="Data inicial" [(ngModel)]="dateStart">
+        <span>até</span>
+        <input type="date" aria-label="Data final" [(ngModel)]="dateEnd">
+        <button type="button" class="period-pill" (click)="applyCustomDate()">Filtrar</button>
+      </div>
+    </div>
+
+    <!-- === CARDS DE RESUMO (KPIs) === -->
+    <div class="kpi-grid">
+      <div class="kpi-card accent">
+        <div class="kpi-header">
+          <span class="kpi-label">Lucro total estimado</span>
+          <span class="kpi-icon">💰</span>
+        </div>
+        <div class="kpi-value" [style.color]="totalProfitColor">{{ totalProfit }}</div>
+        <div class="kpi-sub">Soma do lucro de todas as unidades</div>
+      </div>
+
+      <div class="kpi-card success">
+        <div class="kpi-header">
+          <span class="kpi-label">Margem média real</span>
+          <span class="kpi-icon">📈</span>
+        </div>
+        <div class="kpi-value">{{ averageMargin }}</div>
+        <div class="kpi-sub">Margem ponderada sobre a venda</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Receita total projetada</span>
+          <span class="kpi-icon">🏷️</span>
+        </div>
+        <div class="kpi-value">{{ totalRevenue }}</div>
+        <div class="kpi-sub">Volume total em vendas simuladas</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Produtos analisados</span>
+          <span class="kpi-icon">📦</span>
+        </div>
+        <div class="kpi-value">{{ analysedCount }}</div>
+        <div class="kpi-sub">Simulações ativas registradas</div>
+      </div>
+    </div>
+
+    <!-- === TABELA DE RESULTADOS POR PRODUTO === -->
+    <div class="table-card">
+      <div class="table-head">
+        <div>
+          <h2>Desempenho por produto</h2>
+          <p>Compare o custo, preço praticado e o lucro gerado por cada item.</p>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table *ngIf="rowViews.length && !loading">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Custo unitário</th>
+              <th>Preço de venda</th>
+              <th>Lucro / unidade</th>
+              <th>Margem real</th>
+              <th>Viabilidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of rowViews">
+              <td data-label="Produto">
+                <div class="product-name">
+                  <strong>{{ row.name }}</strong>
+                  <span>por {{ row.unit }}</span>
+                </div>
+              </td>
+              <td data-label="Custo unit." class="value-cell muted">{{ row.cost }}</td>
+              <td data-label="Preço venda" class="value-cell" [class.muted]="!row.priced">{{ row.sale }}</td>
+              <td data-label="Lucro/un." [class.profit-cell]="row.priced" [class.value-cell]="!row.priced"
+                [class.muted]="!row.priced" [ngClass]="row.priced ? row.profitClass : ''">{{ row.profit }}</td>
+              <td data-label="Margem real" class="value-cell" [class.muted]="!row.priced">{{ row.margin }}</td>
+              <td data-label="Viabilidade">
+                <span class="viability-badge" [ngClass]="row.viability.cls">
+                  <span class="badge-dot"></span>{{ row.viability.label }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="empty-state" *ngIf="loading">
+          <div class="empty-icon">📊</div>
+          <h3>Carregando resultados...</h3>
+          <p>Consolidando fichas técnicas e simulações do período.</p>
+        </div>
+        <div class="empty-state" *ngIf="isEmpty">
+          <div class="empty-icon">📊</div>
+          <h3>Nenhuma simulação no período selecionado</h3>
+          <p>Acesse <strong>Calcular Preços</strong> para simular o preço de um produto e salvar os resultados aqui.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <app-workspace-toast />
+</app-shell>

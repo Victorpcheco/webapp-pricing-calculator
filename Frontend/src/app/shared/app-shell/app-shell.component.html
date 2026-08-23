@@ -1,32 +1,87 @@
 <div class="app-shell">
-  <aside class="app-sidebar" aria-label="Navegação principal">
-    <a class="brand" routerLink="/" aria-label="MeuPreço dashboard">
-      <span class="logo">M</span>
-      <span>MeuPreço</span>
-    </a>
 
-    <nav class="nav-list">
+  <!-- =============================================
+       SIDEBAR
+  ============================================= -->
+  <aside class="sidebar">
+    <a class="logo-area" routerLink="/dashboard" aria-label="MeuPreço - início">
+      <span class="logo-icon">M</span>
+      <span class="logo-text">MeuPreço</span>
+    </a>
+    <div class="nav-label">Minha gestão</div>
+    <nav class="side-nav" aria-label="Navegação principal">
       <a
         *ngFor="let item of navigation"
-        class="nav-item"
         [routerLink]="item.path"
         routerLinkActive="active"
-      >
-        {{ item.label }}
-      </a>
+        #linkActive="routerLinkActive"
+        [attr.aria-current]="linkActive.isActive ? 'page' : null"
+      ><span class="nav-icon">{{ item.icon }}</span><span>{{ item.label }}</span></a>
     </nav>
-
-    <div class="sidebar-summary">
-      <span>Meta mensal</span>
-      <strong>R$ 12.000</strong>
-      <div class="progress-line">
-        <span style="width: 70%"></span>
-      </div>
-      <small>70% alcançado</small>
+    <div class="sidebar-tip">
+      <span>{{ tipEyebrow }}</span>
+      <strong>{{ tipTitle }}</strong>
+      <p>{{ tipText }}</p>
     </div>
   </aside>
 
-  <main class="app-main">
+  <!-- =============================================
+       WORKSPACE
+  ============================================= -->
+  <section class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <a routerLink="/dashboard">MeuPreço</a>
+        <span>/</span>
+        <ng-container *ngIf="breadcrumbParent">
+          <a routerLink="/dashboard">{{ breadcrumbParent }}</a>
+          <span>/</span>
+        </ng-container>
+        <strong>{{ breadcrumb }}</strong>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Abre a Central de Ajuda já na seção da tela atual. -->
+        <button
+          class="help-btn"
+          type="button"
+          (click)="openHelp()"
+          title="Central de Ajuda — o que significa cada campo"
+          aria-label="Abrir a central de ajuda"
+        >
+          <span class="help-btn-icon" aria-hidden="true">?</span>
+          <span class="help-btn-text">Ajuda</span>
+        </button>
+
+        <div class="user-menu-wrap">
+          <div
+            class="user-menu"
+            tabindex="0"
+            role="button"
+            aria-haspopup="true"
+            [attr.aria-expanded]="isDropdownOpen"
+            (click)="toggleDropdown($event)"
+            (keydown.enter)="toggleDropdown($event)"
+            (keydown.space)="toggleDropdown($event)"
+          >
+            <div class="user-copy">
+              <strong>{{ userName }}</strong>
+            </div>
+            <div class="avatar">{{ userInitials }}</div>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div class="dropdown-menu" [class.show]="isDropdownOpen">
+            <button type="button" class="dropdown-item" (click)="openHelp()">❔ Central de Ajuda</button>
+            <button type="button" class="dropdown-item danger" (click)="logout()">🚪 Sair</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
     <ng-content />
-  </main>
+  </section>
 </div>
+
+<!-- Pop-up de ajuda: disponível em todas as telas internas. -->
+<app-help-center #helpCenter />
