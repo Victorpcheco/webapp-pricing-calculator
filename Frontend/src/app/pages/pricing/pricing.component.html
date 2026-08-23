@@ -24,7 +24,8 @@
           </div>
           <div class="form-group full">
             <label for="recipeSelect">Produto ou receita cadastrada</label>
-            <select id="recipeSelect" name="recipe" [(ngModel)]="selectedRecipeId" (ngModelChange)="onRecipeChange()">
+            <select id="recipeSelect" name="recipe" [(ngModel)]="selectedRecipeId" (ngModelChange)="onRecipeChange()" [disabled]="loading || !recipes.length">
+              <option *ngIf="!recipes.length" value="">{{ loading ? 'Carregando produtos...' : 'Nenhum produto cadastrado' }}</option>
               <option *ngFor="let item of recipes" [value]="item.id">{{ recipeOptionLabel(item) }}</option>
             </select>
             <p class="helper">O custo é carregado automaticamente a partir da composição salva do produto.</p>
@@ -85,8 +86,8 @@
         </section>
 
         <div class="form-actions">
-          <button class="ghost-btn" type="button" (click)="clearForm()">Limpar dados</button>
-          <button class="primary-btn" type="submit">Salvar</button>
+          <button class="ghost-btn" type="button" (click)="clearForm()" [disabled]="saving">Limpar dados</button>
+          <button class="primary-btn" type="submit" [disabled]="saving || !recipes.length">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
         </div>
       </form>
 
@@ -136,13 +137,14 @@
             [ngModelOptions]="{ standalone: true }">
         </label>
         <div style="display:flex; justify-content:flex-end;">
-          <button class="outline-btn" type="button" (click)="clearAllSimulations()">Limpar dados</button>
+          <button class="outline-btn" type="button" (click)="clearAllSimulations()"
+            [disabled]="loading || !simulations.length">Limpar dados</button>
         </div>
       </div>
       <div class="table-note">
-        <span>{{ visibleCountLabel }}</span>
+        <span>{{ loading ? 'Carregando simulações...' : visibleCountLabel }}</span>
       </div>
-      <div class="table-scroll" *ngIf="filteredSimulations.length">
+      <div class="table-scroll" *ngIf="filteredSimulations.length && !loading">
         <table>
           <thead>
             <tr>
@@ -182,7 +184,12 @@
           </tbody>
         </table>
       </div>
-      <div class="empty-state visible" *ngIf="!filteredSimulations.length">
+      <div class="empty-state visible" *ngIf="loading">
+        <div class="empty-icon">%</div>
+        <strong>Carregando simulações...</strong>
+        <p>Buscando o histórico salvo na sua conta.</p>
+      </div>
+      <div class="empty-state visible" *ngIf="!filteredSimulations.length && !loading">
         <div class="empty-icon">%</div>
         <strong>Nenhuma simulação salva</strong>
         <p>Selecione um produto, ajuste as margens e clique em "Salvar" para registrar o cálculo.</p>
@@ -191,4 +198,5 @@
   </main>
 
   <app-workspace-toast />
+  <app-confirm-dialog />
 </app-shell>

@@ -38,10 +38,11 @@
           <option value="CLT">CLT</option>
           <option value="Freelancer">Freelancer</option>
         </select>
-        <button class="outline-btn" type="button" (click)="clearAll()">Limpar dados</button>
+        <button class="outline-btn" type="button" (click)="clearAll()"
+          [disabled]="loading || !items.length">Limpar dados</button>
       </div>
-      <div class="table-note"><span>{{ visibleCountLabel }}</span></div>
-      <div class="table-scroll" *ngIf="filtered.length">
+      <div class="table-note"><span>{{ loading ? 'Carregando colaboradores...' : visibleCountLabel }}</span></div>
+      <div class="table-scroll" *ngIf="filtered.length && !loading">
         <table>
           <thead>
             <tr>
@@ -87,7 +88,11 @@
           </tbody>
         </table>
       </div>
-      <div class="empty-state visible" *ngIf="!filtered.length">
+      <div class="empty-state visible" *ngIf="loading">
+        <div class="empty-icon">☺</div><strong>Carregando colaboradores...</strong>
+        <p>Buscando a equipe cadastrada na sua conta.</p>
+      </div>
+      <div class="empty-state visible" *ngIf="!filtered.length && !loading">
         <div class="empty-icon">☺</div><strong>Nenhum colaborador encontrado</strong>
         <p>Altere os filtros ou cadastre um colaborador CLT ou freelancer para começar.</p>
       </div>
@@ -198,12 +203,13 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button class="cancel-btn" type="button" (click)="closeModal()">Cancelar</button>
-          <button class="primary-btn" type="submit">Salvar</button>
+          <button class="cancel-btn" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
+          <button class="primary-btn" type="submit" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
         </div>
       </form>
     </section>
   </div>
 
   <app-workspace-toast />
+  <app-confirm-dialog />
 </app-shell>

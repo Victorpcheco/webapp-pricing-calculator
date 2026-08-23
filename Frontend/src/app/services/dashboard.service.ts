@@ -1,19 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { MockStoreService } from './mock-store.service';
+import { Observable, forkJoin, map } from 'rxjs';
+import { InsumoItem, InsumosApiService } from './insumos-api.service';
+import { ProductItem, ProdutosApiService } from './produtos-api.service';
+import { PrecificacoesApiService, PricingSimulationItem } from './precificacoes-api.service';
+import { CustosApiService } from './custos-api.service';
 
 /**
  * ============================================================
  * BACKEND (C# / ASP.NET) — DASHBOARD / VISÃO GERAL
- * ENDPOINT: GET /api/dashboard/resumo
- * HEADERS:  Authorization: Bearer <token>
- * RETORNO ESPERADO (200 OK): DashboardResumo
- *
- * Enquanto o endpoint não existe, o resumo é derivado do
- * `MockStoreService` — a mesma fonte das demais telas. É o que o
- * `js/dashboard.js` do mockup fazia ao ler as chaves do
- * localStorage gravadas por insumos, produtos, custos e
- * precificação: o painel reflete o que foi cadastrado.
+ * Não existe um endpoint dedicado: o resumo é consolidado no cliente a
+ * partir dos quatro endpoints que as demais telas já usam —
+ * GET /api/insumos, /api/produtos, /api/precificacoes e /api/custos —
+ * todos com Authorization: Bearer <token> (authInterceptor).
  * ============================================================
  */
 
@@ -46,69 +44,85 @@ export interface DashboardResumo {
   providedIn: 'root'
 })
 export class DashboardService {
-  private readonly store = inject(MockStoreService);
+  private readonly insumosApi = inject(InsumosApiService);
+  private readonly produtosApi = inject(ProdutosApiService);
+  private readonly precificacoesApi = inject(PrecificacoesApiService);
+  private readonly custosApi = inject(CustosApiService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   getResumo(): Observable<DashboardResumo> {
-    return of({
-      valorHora: this.store.hourlyRate,
-      totalInsumos: this.store.supplies.length,
-      totalReceitas: this.store.products.length,
-      totalSimulacoes: this.store.simulations.length,
-      desempenhoProdutos: this.buildDesempenho(),
-      atividadesRecentes: this.buildAtividades()
-    });
+    return forkJoin({
+      insumos: this.insumosApi.listar(),
+      produtos: this.produtosApi.listar(),
+      simulacoes: this.precificacoesApi.listar(),
+      custos: this.custosApi.listar()
+    }).pipe(
+      map(({ insumos, produtos, simulacoes, custos }) => ({
+        // Histórico vem do mais recente ao mais antigo; 18,50 é o fallback do mockup sem configuração salva
+        valorHora: custos[0]?.hour > 0 ? custos[0].hour : 18.5,
+        totalInsumos: insumos.meta.total,
+        totalReceitas: produtos.meta.total,
+        totalSimulacoes: simulacoes.length,
+        desempenhoProdutos: this.buildDesempenho(produtos.data, simulacoes),
+        atividadesRecentes: this.buildAtividades(simulacoes, produtos.data, insumos.data)
+      }))
+    );
   }
 
   /** Prioriza as simulações de preço; sem elas, estima 40% de margem sobre o custo. */
-  private buildDesempenho(): DesempenhoProduto[] {
-    if (this.store.simulations.length) {
-      return this.store.simulations.map(simulation => {
-        const recipe = this.store.findProduct(simulation.recipeId);
-        const custo = Number(recipe?.unitCost !== undefined ? recipe.unitCost : simulation.cost || 0);
-        const preco = Number(simulation.salePrice || 0);
-        return { nome: recipe?.name || simulation.recipeName || 'Produto', custo, preco, lucro: preco - custo };
+  private buildDesempenho(produtos: ProductItem[], simulacoes: PricingSimulationItem[]): DesempenhoProduto[] {
+    if (simulacoes.length) {
+      return simulacoes.map(simulacao => {
+        // Custo vigente do produto quando ele ainda existe; senão, o retrato gravado na simulação
+        const produto = produtos.find(item => item.id === simulacao.recipeId);
+        const custo = produto ? produto.unitCost : simulacao.cost;
+        const preco = Number(simulacao.salePrice || 0);
+        return { nome: produto?.name || simulacao.recipeName || 'Produto', custo, preco, lucro: preco - custo };
       });
     }
 
-    return this.store.products.map(product => {
-      const custo = Number(product.unitCost || 0);
+    return produtos.map(produto => {
+      const custo = Number(produto.unitCost || 0);
       const preco = custo * 1.4;
-      return { nome: product.name || 'Produto', custo, preco, lucro: preco - custo };
+      return { nome: produto.name || 'Produto', custo, preco, lucro: preco - custo };
     });
   }
 
-  private buildAtividades(): AtividadeRecente[] {
+  private buildAtividades(
+    simulacoes: PricingSimulationItem[],
+    produtos: ProductItem[],
+    insumos: InsumoItem[]
+  ): AtividadeRecente[] {
     const atividades: AtividadeRecente[] = [];
-    const now = Date.now();
 
-    const lastSimulation = this.store.simulations[0];
+    // As três listas já chegam ordenadas do mais recente ao mais antigo pelo backend
+    const lastSimulation = simulacoes[0];
     if (lastSimulation) {
       atividades.push({
         tipo: 'precificacao',
         titulo: `Precificação de ${lastSimulation.recipeName || 'Produto'}`,
         descricao: `Preço definido em ${this.currency.format(lastSimulation.salePrice || 0)}`,
-        data: lastSimulation.createdAt || new Date(now).toISOString()
+        data: lastSimulation.createdAt
       });
     }
 
-    const lastProduct = this.store.products[0];
+    const lastProduct = produtos[0];
     if (lastProduct) {
       atividades.push({
         tipo: 'produto',
         titulo: `Produto: ${lastProduct.name}`,
         descricao: `Rendimento de ${lastProduct.yieldAmount || 1} ${lastProduct.yieldName || 'un'}`,
-        data: lastProduct.updatedAt || new Date(now).toISOString()
+        data: lastProduct.updatedAt
       });
     }
 
-    const lastSupply = this.store.supplies[0];
+    const lastSupply = insumos[0];
     if (lastSupply) {
       atividades.push({
         tipo: 'insumo',
         titulo: `Insumo: ${lastSupply.name}`,
         descricao: `${lastSupply.quantity} ${lastSupply.unit} por ${this.currency.format(lastSupply.price || 0)}`,
-        data: new Date(now - 27 * 60 * 60 * 1000).toISOString()
+        data: lastSupply.createdAt
       });
     }
 

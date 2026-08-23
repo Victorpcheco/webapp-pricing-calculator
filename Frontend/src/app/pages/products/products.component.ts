@@ -15,7 +15,6 @@ import {
   SalvarProdutoCommand
 } from '../../services/produtos-api.service';
 import { InsumoItem, InsumosApiService } from '../../services/insumos-api.service';
-import { MockStoreService } from '../../services/mock-store.service';
 
 /**
  * ============================================================
@@ -42,8 +41,6 @@ import { MockStoreService } from '../../services/mock-store.service';
 export class ProductsComponent implements OnInit {
   private readonly api = inject(ProdutosApiService);
   private readonly insumosApi = inject(InsumosApiService);
-  // Mantido para propagar as fichas às telas ainda não integradas (Precificação, Resultados, Dashboard)
-  private readonly store = inject(MockStoreService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   @ViewChild(WorkspaceToastComponent) toast!: WorkspaceToastComponent;
@@ -85,7 +82,6 @@ export class ProductsComponent implements OnInit {
         this.products = produtos.data;
         this.hourlyRate = produtos.meta.hourlyRate;
         this.supplies = insumos.data;
-        this.sincronizarStore();
         this.loading = false;
       },
       error: err => {
@@ -288,7 +284,6 @@ export class ProductsComponent implements OnInit {
       ? this.products.map(current => (current.id === item.id ? item : current))
       : [item, ...this.products];
 
-    this.sincronizarStore();
     this.editId = '';
     this.saving = false;
     this.toast.show('Informação atualizada com sucesso!');
@@ -322,7 +317,6 @@ export class ProductsComponent implements OnInit {
     this.api.excluir(item.id).subscribe({
       next: () => {
         this.products = this.products.filter(current => current.id !== item.id);
-        this.sincronizarStore();
         if (this.editId === item.id) this.clearForm(false);
         this.toast.show('Produto excluído com sucesso!');
       },
@@ -342,7 +336,6 @@ export class ProductsComponent implements OnInit {
     this.api.limparTudo().subscribe({
       next: () => {
         this.products = [];
-        this.sincronizarStore();
         this.clearForm(false);
         this.search = '';
         this.toast.show('Produtos limpos com sucesso!');
@@ -363,26 +356,6 @@ export class ProductsComponent implements OnInit {
   }
 
   /* ===================== APOIO ===================== */
-
-  /** Propaga as fichas para Precificação, Resultados e Dashboard, que ainda leem do store. */
-  private sincronizarStore() {
-    this.store.products = this.products.map(item => ({
-      id: item.id,
-      name: item.name,
-      yieldAmount: item.yieldAmount,
-      yieldName: item.yieldName,
-      productionTime: item.productionTime,
-      composition: item.composition.map(entry => ({
-        itemId: entry.supplyId,
-        amount: entry.amount
-      })),
-      materials: item.materialsCost,
-      labor: item.laborCost,
-      total: item.totalCost,
-      unitCost: item.unitCost,
-      updatedAt: item.updatedAt
-    }));
-  }
 
   /** Extrai a mensagem do backend: { error } do Result ou { errors } das Data Annotations. */
   private mensagemErro(err: unknown, fallback: string): string {

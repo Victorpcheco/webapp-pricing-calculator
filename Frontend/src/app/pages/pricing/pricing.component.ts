@@ -1,10 +1,18 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
-import { MockStoreService, PricingSimulation, Product } from '../../services/mock-store.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ProductItem, ProdutosApiService } from '../../services/produtos-api.service';
+import {
+  PrecificacoesApiService,
+  PricingSimulationItem,
+  SalvarSimulacaoCommand
+} from '../../services/precificacoes-api.service';
 
 interface Viability {
   cls: 'profit' | 'loss' | 'balance';
@@ -17,27 +25,29 @@ interface Viability {
 /**
  * ============================================================
  * BACKEND (C# / ASP.NET) — PRECIFICAÇÃO
- * GET    /api/precificacoes         → lista as simulações
+ * GET    /api/precificacoes         → lista o histórico de simulações
  * POST   /api/precificacoes         → salva uma simulação
  * PUT    /api/precificacoes/{id}    → atualiza
  * DELETE /api/precificacoes/{id}    → remove
- * HEADERS: Authorization: Bearer <token>
+ * DELETE /api/precificacoes         → limpa todo o histórico
+ * HEADERS: Authorization: Bearer <token> (authInterceptor)
  *
- * Cálculo (idêntico ao mockup):
- *   sugerido    = custo × (1 + margem/100)
- *   lucro       = preço praticado − custo
- *   margem real = (lucro ÷ preço praticado) × 100
+ * O backend resolve o custo unitário vigente do produto (mesma ficha do
+ * GET /api/produtos) e grava um retrato do cálculo — cost/suggested/profit/etc.
+ * não mudam depois se o produto for renomeado ou tiver o custo alterado.
+ * O cálculo repetido aqui serve só para a prévia em tempo real do formulário.
  * ============================================================
  */
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent],
+  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
   templateUrl: './pricing.component.html',
   styleUrl: './pricing.component.scss'
 })
 export class PricingComponent implements OnInit {
-  private readonly store = inject(MockStoreService);
+  private readonly api = inject(PrecificacoesApiService);
+  private readonly produtosApi = inject(ProdutosApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   private readonly percentFormat = new Intl.NumberFormat('pt-BR', {
@@ -46,6 +56,13 @@ export class PricingComponent implements OnInit {
   });
 
   @ViewChild(WorkspaceToastComponent) toast!: WorkspaceToastComponent;
+  @ViewChild(ConfirmDialogComponent) confirmDialog!: ConfirmDialogComponent;
+
+  loading = false;
+  saving = false;
+
+  recipes: ProductItem[] = [];
+  simulations: PricingSimulationItem[] = [];
 
   editId = '';
   selectedRecipeId = '';
@@ -55,27 +72,46 @@ export class PricingComponent implements OnInit {
   search = '';
 
   ngOnInit() {
-    const requested = this.route.snapshot.queryParamMap.get('recipe');
-    const found = requested ? this.recipes.find(item => String(item.id) === String(requested)) : undefined;
-    this.selectedRecipeId = found?.id ?? this.recipes[0]?.id ?? '';
-    this.refreshPriceFromSuggestion();
+    this.carregarTudo();
+  }
+
+  private carregarTudo() {
+    this.loading = true;
+
+    // As duas listas são independentes: uma só espera pela mais lenta
+    forkJoin({
+      recipes: this.produtosApi.listar(),
+      simulations: this.api.listar()
+    }).subscribe({
+      next: ({ recipes, simulations }) => {
+        this.recipes = recipes.data;
+        this.simulations = simulations;
+
+        const requested = this.route.snapshot.queryParamMap.get('recipe');
+        const found = requested ? this.recipes.find(item => String(item.id) === String(requested)) : undefined;
+        this.selectedRecipeId = found?.id ?? this.recipes[0]?.id ?? '';
+        this.refreshPriceFromSuggestion();
+
+        this.loading = false;
+      },
+      error: err => {
+        this.toast.show(this.mensagemErro(err, 'Erro ao carregar a precificação.'));
+        this.loading = false;
+      }
+    });
   }
 
   /* ===================== DADOS ===================== */
 
-  get recipes(): Product[] {
-    return this.store.products;
+  get selectedRecipe(): ProductItem | undefined {
+    return this.recipes.find(item => item.id === this.selectedRecipeId) ?? this.recipes[0];
   }
 
-  get selectedRecipe(): Product | undefined {
-    return this.store.findProduct(this.selectedRecipeId) ?? this.recipes[0];
-  }
-
-  recipeOptionLabel(item: Product): string {
+  recipeOptionLabel(item: ProductItem): string {
     return `${item.name} - Custo: ${this.money(Number(item.unitCost) || 0)}`;
   }
 
-  /* ===================== CÁLCULO ===================== */
+  /* ===================== CÁLCULO (prévia em tempo real) ===================== */
 
   get cost(): number {
     return Math.max(0, Number(this.selectedRecipe?.unitCost) || 0);
@@ -231,11 +267,7 @@ export class PricingComponent implements OnInit {
 
   /* ===================== SIMULAÇÕES SALVAS ===================== */
 
-  get simulations(): PricingSimulation[] {
-    return this.store.simulations;
-  }
-
-  get filteredSimulations(): PricingSimulation[] {
+  get filteredSimulations(): PricingSimulationItem[] {
     const search = this.search.toLowerCase().trim();
     return this.simulations.filter(item => (item.recipeName || '').toLowerCase().includes(search));
   }
@@ -245,56 +277,69 @@ export class PricingComponent implements OnInit {
     return `${total} ${total === 1 ? 'simulação salva' : 'simulações salvas'}`;
   }
 
-  simulationSubtitle(item: PricingSimulation): string {
+  simulationSubtitle(item: PricingSimulationItem): string {
     const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString('pt-BR') : '';
     return date ? `Simulado em ${date}` : 'Simulação de preço';
   }
 
-  rowProfitLabel(item: PricingSimulation): string {
+  rowProfitLabel(item: PricingSimulationItem): string {
     const value = Number(item.profit || 0);
     return `${value < 0 ? '− ' : ''}${this.money(Math.abs(value))}`;
   }
 
-  rowProfitColor(item: PricingSimulation): string {
+  rowProfitColor(item: PricingSimulationItem): string {
     const value = Number(item.profit || 0);
     return value > 0 ? 'var(--success)' : value < 0 ? 'var(--danger)' : 'var(--warning)';
   }
 
   onSubmit(event: Event) {
     event.preventDefault();
+    if (this.saving) return;
 
-    const recipe = this.selectedRecipe;
-    if (!recipe) return;
-
-    const simId = this.editId || `pricing-${Date.now().toString(36)}`;
-    const simulation: PricingSimulation = {
-      id: simId,
-      recipeId: recipe.id,
-      recipeName: recipe.name,
-      cost: this.cost,
-      margin: this.margin,
-      suggested: this.suggested,
-      salePrice: this.price,
-      quantity: this.quantity,
-      profit: this.profit,
-      realMargin: this.realMargin,
-      revenue: this.revenue,
-      totalProfit: this.totalProfit,
-      createdAt: new Date().toISOString()
-    };
-
-    const existingIndex = this.simulations.findIndex(item => item.id === simId);
-    if (existingIndex >= 0) {
-      this.store.simulations = this.simulations.map(item => (item.id === simId ? simulation : item));
-    } else {
-      this.store.simulations = [simulation, ...this.simulations];
+    if (!this.selectedRecipeId) {
+      this.toast.show('Cadastre um produto antes de simular um preço.');
+      return;
     }
 
+    const command: SalvarSimulacaoCommand = {
+      recipeId: this.selectedRecipeId,
+      margin: this.margin,
+      salePrice: this.price,
+      quantity: this.quantity
+    };
+
+    this.saving = true;
+
+    if (this.editId) {
+      this.api.atualizar(this.editId, command).subscribe({
+        next: atualizada => this.onSalvoComSucesso(atualizada),
+        error: err => {
+          this.toast.show(this.mensagemErro(err, 'Erro ao atualizar a simulação.'));
+          this.saving = false;
+        }
+      });
+    } else {
+      this.api.criar(command).subscribe({
+        next: criada => this.onSalvoComSucesso(criada),
+        error: err => {
+          this.toast.show(this.mensagemErro(err, 'Erro ao salvar a simulação.'));
+          this.saving = false;
+        }
+      });
+    }
+  }
+
+  private onSalvoComSucesso(item: PricingSimulationItem) {
+    this.simulations = this.editId
+      ? this.simulations.map(current => (current.id === item.id ? item : current))
+      : [item, ...this.simulations];
+
     this.editId = '';
+    this.saving = false;
     this.toast.show('Informação atualizada com sucesso!');
   }
 
-  editSimulation(item: PricingSimulation) {
+  editSimulation(item: PricingSimulationItem) {
     this.editId = item.id;
     if (item.recipeId) this.selectedRecipeId = item.recipeId;
     this.margin = item.margin ?? 40;
@@ -305,16 +350,42 @@ export class PricingComponent implements OnInit {
     document.getElementById('marginInput')?.focus();
   }
 
-  deleteSimulation(item: PricingSimulation) {
-    if (!window.confirm(`Deseja realmente excluir a simulação de "${item.recipeName || 'selecionada'}"?`)) return;
-    this.store.simulations = this.simulations.filter(current => current.id !== item.id);
-    this.toast.show('Simulação excluída com sucesso!');
+  async deleteSimulation(item: PricingSimulationItem) {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Excluir simulação',
+      message: `Deseja realmente excluir a simulação de "${item.recipeName || 'selecionada'}"?`,
+      confirmLabel: 'Excluir',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    this.api.excluir(item.id).subscribe({
+      next: () => {
+        this.simulations = this.simulations.filter(current => current.id !== item.id);
+        if (this.editId === item.id) this.editId = '';
+        this.toast.show('Simulação excluída com sucesso!');
+      },
+      error: err => this.toast.show(this.mensagemErro(err, 'Erro ao excluir a simulação.'))
+    });
   }
 
-  clearAllSimulations() {
-    if (!window.confirm('Deseja excluir todas as simulações salvas?')) return;
-    this.store.simulations = [];
-    this.toast.show('Simulações limpas com sucesso!');
+  async clearAllSimulations() {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Limpar dados',
+      message: 'Todas as simulações salvas serão removidas permanentemente. Deseja continuar?',
+      confirmLabel: 'Limpar tudo',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    this.api.limparTudo().subscribe({
+      next: () => {
+        this.simulations = [];
+        this.search = '';
+        this.toast.show('Simulações limpas com sucesso!');
+      },
+      error: err => this.toast.show(this.mensagemErro(err, 'Erro ao limpar as simulações.'))
+    });
   }
 
   clearForm() {
@@ -323,5 +394,24 @@ export class PricingComponent implements OnInit {
     this.salesQuantity = 1;
     this.refreshPriceFromSuggestion();
     this.toast.show('Dados da simulação limpos com sucesso!');
+  }
+
+  /* ===================== APOIO ===================== */
+
+  /** Extrai a mensagem do backend: { error } do Result ou { errors } das Data Annotations. */
+  private mensagemErro(err: unknown, fallback: string): string {
+    const body = (err as HttpErrorResponse)?.error;
+
+    if (typeof body === 'string' && body.trim()) return body;
+    if (body?.error) return body.error;
+
+    if (body?.errors) {
+      const primeira = Object.values(body.errors as Record<string, string[]>)
+        .flat()
+        .find(mensagem => !!mensagem);
+      if (primeira) return primeira;
+    }
+
+    return fallback;
   }
 }

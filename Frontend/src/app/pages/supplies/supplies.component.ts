@@ -12,7 +12,10 @@ import {
   InsumosApiService,
   SalvarInsumoCommand
 } from '../../services/insumos-api.service';
-import { MockStoreService } from '../../services/mock-store.service';
+
+/** Fatores de conversão para a unidade base (g / ml / un) — mesma tabela do backend. */
+const UNIT_FACTOR: Record<InsumoUnidade, number> = { kg: 1000, g: 1, L: 1000, ml: 1, un: 1 };
+const BASE_UNIT: Record<InsumoUnidade, string> = { kg: 'g', g: 'g', L: 'ml', ml: 'ml', un: 'un' };
 
 /**
  * ============================================================
@@ -36,8 +39,6 @@ import { MockStoreService } from '../../services/mock-store.service';
 })
 export class SuppliesComponent implements OnInit {
   private readonly api = inject(InsumosApiService);
-  // Mantido para propagar os insumos às telas ainda não integradas (Produtos, Dashboard)
-  private readonly store = inject(MockStoreService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   private readonly numberBR = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 });
 
@@ -169,12 +170,12 @@ export class SuppliesComponent implements OnInit {
   private get previewData() {
     const quantity = Math.max(0, Number(this.formQuantity) || 0);
     const price = this.parseBR(this.formPrice);
-    const baseQuantity = quantity * this.store.unitFactor(this.formUnit);
+    const baseQuantity = quantity * (UNIT_FACTOR[this.formUnit] ?? 1);
     return {
       quantity,
       price,
       baseQuantity,
-      baseUnit: this.store.baseUnit(this.formUnit),
+      baseUnit: BASE_UNIT[this.formUnit] ?? this.formUnit,
       unitCost: baseQuantity > 0 ? price / baseQuantity : 0
     };
   }
@@ -240,7 +241,6 @@ export class SuppliesComponent implements OnInit {
     this.api.listar().subscribe({
       next: response => {
         this.items = response.data;
-        this.sincronizarStore();
         this.loading = false;
       },
       error: err => {
@@ -302,7 +302,6 @@ export class SuppliesComponent implements OnInit {
       ? this.items.map(current => (current.id === item.id ? item : current))
       : [item, ...this.items];
 
-    this.sincronizarStore();
     this.saving = false;
     this.closeModal();
     this.toast.show('Informação atualizada com sucesso!');
@@ -320,7 +319,6 @@ export class SuppliesComponent implements OnInit {
     this.api.excluir(item.id).subscribe({
       next: () => {
         this.items = this.items.filter(current => current.id !== item.id);
-        this.sincronizarStore();
         if (this.editId === item.id) this.closeModal();
         this.toast.show('Item excluído da lista.');
       },
@@ -340,7 +338,6 @@ export class SuppliesComponent implements OnInit {
     this.api.limparTudo().subscribe({
       next: () => {
         this.items = [];
-        this.sincronizarStore();
         this.search = '';
         this.typeFilter = 'all';
         this.toast.show('Dados de insumos limpos com sucesso!');
@@ -350,18 +347,6 @@ export class SuppliesComponent implements OnInit {
   }
 
   /* ===================== APOIO ===================== */
-
-  /** Propaga a lista para Produtos e Dashboard, que ainda leem do store em memória. */
-  private sincronizarStore() {
-    this.store.supplies = this.items.map(item => ({
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      quantity: item.quantity,
-      unit: item.unit,
-      price: item.price
-    }));
-  }
 
   /** Extrai a mensagem do backend: { error } do Result ou { errors } das Data Annotations. */
   private mensagemErro(err: unknown, fallback: string): string {

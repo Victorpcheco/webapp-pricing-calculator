@@ -1,7 +1,9 @@
 using Domain.Entities.Users;
 using Domain.Entities;
+using Domain.Entities.Colaboradores;
 using Domain.Entities.Custos;
 using Domain.Entities.Insumos;
+using Domain.Entities.Precificacoes;
 using Domain.Entities.Produtos;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,8 +18,10 @@ public class AppDbContext : DbContext
     public DbSet<User> Usuarios { get; set; } = null!;
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<CustoOperacional> CustosOperacionais { get; set; } = null!;
+    public DbSet<Colaborador> Colaboradores { get; set; } = null!;
     public DbSet<Insumo> Insumos { get; set; } = null!;
     public DbSet<Produto> Produtos { get; set; } = null!;
+    public DbSet<SimulacaoPreco> SimulacoesPreco { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

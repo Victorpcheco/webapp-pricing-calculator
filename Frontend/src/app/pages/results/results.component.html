@@ -77,7 +77,7 @@
       </div>
 
       <div class="table-scroll">
-        <table>
+        <table *ngIf="rowViews.length && !loading">
           <thead>
             <tr>
               <th>Produto</th>
@@ -89,7 +89,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of rows">
+            <tr *ngFor="let row of rowViews">
               <td data-label="Produto">
                 <div class="product-name">
                   <strong>{{ row.name }}</strong>
@@ -110,6 +110,11 @@
           </tbody>
         </table>
 
+        <div class="empty-state" *ngIf="loading">
+          <div class="empty-icon">📊</div>
+          <h3>Carregando resultados...</h3>
+          <p>Consolidando fichas técnicas e simulações do período.</p>
+        </div>
         <div class="empty-state" *ngIf="isEmpty">
           <div class="empty-icon">📊</div>
           <h3>Nenhuma simulação no período selecionado</h3>
@@ -119,4 +124,6 @@
     </div>
 
   </main>
+
+  <app-workspace-toast />
 </app-shell>

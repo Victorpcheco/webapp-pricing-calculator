@@ -5,7 +5,6 @@ import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { CostHistoryItem, CustosApiService, SalvarCustoCommand } from '../../services/custos-api.service';
-import { MockStoreService } from '../../services/mock-store.service';
 
 @Component({
   selector: 'app-costs',
@@ -16,8 +15,6 @@ import { MockStoreService } from '../../services/mock-store.service';
 })
 export class CostsComponent implements OnInit {
   private readonly api = inject(CustosApiService);
-  // Mantido apenas para propagar o hourlyRate às telas ainda não integradas
-  private readonly store = inject(MockStoreService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
   @ViewChild(WorkspaceToastComponent) toast!: WorkspaceToastComponent;
@@ -201,16 +198,6 @@ export class CostsComponent implements OnInit {
     } else {
       this.history = [item, ...this.history];
     }
-    // Propaga o valor da hora para telas ainda não integradas
-    this.store.costSettings = {
-      salary: item.salary, hours: item.hours,
-      energy: item.energy, energyPercent: item.energyPercent,
-      gas: item.gas, gasPercent: item.gasPercent,
-      hasMei: item.hasMei, das: item.das,
-      depreciationRate: item.depreciationRate,
-      energyReal: item.energyReal, gasReal: item.gasReal,
-      depreciation: item.depreciation, monthly: item.monthly, hour: item.hour
-    };
     this.editId = '';
     this.loading = false;
     this.toast.show('Informação atualizada com sucesso!');

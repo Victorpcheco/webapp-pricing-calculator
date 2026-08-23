@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
+import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
 import { AuthService } from '../../services/auth.service';
 import {
   AtividadeRecente,
@@ -39,7 +41,7 @@ const ACTIVITY_STYLE: Record<TipoAtividade, { icon: string; bg: string; color: s
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, AppShellComponent],
+  imports: [CommonModule, AppShellComponent, WorkspaceToastComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -47,6 +49,10 @@ export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly authService = inject(AuthService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  @ViewChild(WorkspaceToastComponent) toast!: WorkspaceToastComponent;
+
+  loading = false;
 
   kpiHour = 'R$ 0,00';
   kpiItems = 0;
@@ -62,7 +68,34 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.dashboardService.getResumo().subscribe(resumo => this.applyResumo(resumo));
+    this.loading = true;
+    this.dashboardService.getResumo().subscribe({
+      next: resumo => {
+        this.applyResumo(resumo);
+        this.loading = false;
+      },
+      error: err => {
+        this.toast.show(this.mensagemErro(err, 'Erro ao carregar o painel.'));
+        this.loading = false;
+      }
+    });
+  }
+
+  /** Extrai a mensagem do backend: { error } do Result ou { errors } das Data Annotations. */
+  private mensagemErro(err: unknown, fallback: string): string {
+    const body = (err as HttpErrorResponse)?.error;
+
+    if (typeof body === 'string' && body.trim()) return body;
+    if (body?.error) return body.error;
+
+    if (body?.errors) {
+      const primeira = Object.values(body.errors as Record<string, string[]>)
+        .flat()
+        .find(mensagem => !!mensagem);
+      if (primeira) return primeira;
+    }
+
+    return fallback;
   }
 
   private applyResumo(resumo: DashboardResumo) {
