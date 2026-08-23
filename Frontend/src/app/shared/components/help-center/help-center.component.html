@@ -1,0 +1,144 @@
+<!-- =============================================
+     CENTRAL DE AJUDA — pop-up seccionado por telas
+============================================= -->
+<div
+  class="help-backdrop"
+  [class.open]="isOpen"
+  [attr.aria-hidden]="!isOpen"
+  (mousedown)="onBackdropMouseDown($event)"
+  (click)="onBackdropClick($event)"
+>
+  <section class="help-modal" role="dialog" aria-modal="true" aria-labelledby="helpCenterTitle">
+
+    <!-- === CABEÇALHO === -->
+    <header class="help-head">
+      <div class="help-head-copy">
+        <div class="help-eyebrow">Central de Ajuda</div>
+        <h2 id="helpCenterTitle">Como preencher cada campo</h2>
+        <p>Escolha a tela na lista ao lado ou busque pelo nome do campo que você quer entender.</p>
+      </div>
+      <button class="help-close" type="button" (click)="close()" aria-label="Fechar a central de ajuda">×</button>
+    </header>
+
+    <!-- === BUSCA === -->
+    <div class="help-search">
+      <span class="help-search-icon" aria-hidden="true">⌕</span>
+      <input
+        #searchInput
+        type="search"
+        [(ngModel)]="search"
+        [ngModelOptions]="{ standalone: true }"
+        placeholder="Buscar campo... ex.: depreciação, rendimento, margem"
+        aria-label="Buscar campo na central de ajuda"
+        autocomplete="off"
+      >
+      <button class="help-search-clear" type="button" *ngIf="search" (click)="clearSearch()">Limpar</button>
+    </div>
+
+    <div class="help-body">
+
+      <!-- === NAVEGAÇÃO POR TELA === -->
+      <nav class="help-nav" aria-label="Telas do sistema">
+        <div class="help-nav-label">Telas do sistema</div>
+        <button
+          type="button"
+          class="help-nav-item"
+          *ngFor="let section of sections"
+          [class.active]="!isSearching && section.id === activeId"
+          (click)="selectSection(section.id)"
+        >
+          <span class="help-nav-icon" aria-hidden="true">{{ section.icon }}</span>
+          <span class="help-nav-copy">
+            <strong>{{ section.label }}</strong>
+            <span>{{ countLabel(section) }}</span>
+          </span>
+        </button>
+      </nav>
+
+      <!-- === CONTEÚDO === -->
+      <div class="help-panel" #panel>
+
+        <!-- Resultado da busca -->
+        <ng-container *ngIf="isSearching; else sectionView">
+          <div class="help-result-head">
+            <strong>{{ searchLabel }}</strong>
+            <span>Busca por "{{ search }}"</span>
+          </div>
+
+          <section class="help-group" *ngFor="let result of searchResults">
+            <div class="help-group-title">
+              <span class="help-group-icon" aria-hidden="true">{{ result.section.icon }}</span>
+              <h3>{{ result.section.label }}</h3>
+              <span>{{ result.matches }}</span>
+            </div>
+            <div class="help-fields">
+              <ng-container *ngFor="let group of result.groups">
+                <ng-container *ngFor="let field of group.fields">
+                  <ng-container *ngTemplateOutlet="fieldCard; context: { field: field, origin: group.title }"></ng-container>
+                </ng-container>
+              </ng-container>
+            </div>
+          </section>
+
+          <div class="help-empty" *ngIf="!totalMatches">
+            <div class="help-empty-icon">?</div>
+            <strong>Não encontramos esse campo</strong>
+            <p>Tente outro termo ou navegue pelas telas na lista ao lado.</p>
+          </div>
+        </ng-container>
+
+        <!-- Seção da tela selecionada -->
+        <ng-template #sectionView>
+          <div class="help-section-head">
+            <span class="help-section-icon" aria-hidden="true">{{ activeSection.icon }}</span>
+            <div>
+              <h3>{{ activeSection.label }}</h3>
+              <p>{{ activeSection.summary }}</p>
+            </div>
+          </div>
+
+          <section class="help-group" *ngFor="let group of activeSection.groups">
+            <div class="help-group-title">
+              <h3>{{ group.title }}</h3>
+              <span>{{ group.fields.length }}</span>
+            </div>
+            <div class="help-fields">
+              <ng-container *ngFor="let field of group.fields">
+                <ng-container *ngTemplateOutlet="fieldCard; context: { field: field }"></ng-container>
+              </ng-container>
+            </div>
+          </section>
+
+          <aside class="help-tips" *ngIf="activeSection.tips.length">
+            <strong>Boas práticas</strong>
+            <ul>
+              <li *ngFor="let tip of activeSection.tips">{{ tip }}</li>
+            </ul>
+          </aside>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- === RODAPÉ === -->
+    <footer class="help-foot">
+      <span>Pressione <kbd>Esc</kbd> para fechar. O botão <strong>?</strong> abre a ajuda da tela em que você está.</span>
+      <button class="help-foot-btn" type="button" (click)="close()">Entendi</button>
+    </footer>
+  </section>
+</div>
+
+<!-- Cartão de campo reutilizado pela busca e pela navegação por tela -->
+<ng-template #fieldCard let-field="field" let-origin="origin">
+  <article class="field-card">
+    <div class="field-head">
+      <strong>{{ field.label }}</strong>
+      <span class="field-tag" [ngClass]="tagClass(field.tag)">{{ field.tag }}</span>
+    </div>
+    <p class="field-desc">{{ field.description }}</p>
+    <div class="field-example" *ngIf="field.example">
+      <span>Exemplo</span>
+      <p>{{ field.example }}</p>
+    </div>
+    <div class="field-origin" *ngIf="origin">{{ origin }}</div>
+  </article>
+</ng-template>
