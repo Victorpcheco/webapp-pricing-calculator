@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AppSelectComponent, AppSelectOption } from '../../shared/components/app-select/app-select.component';
+import { AppDatePickerComponent } from '../../shared/components/app-date-picker/app-date-picker.component';
 import {
   ColaboradoresApiService,
   ContractType,
@@ -33,7 +35,7 @@ import {
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent, AppSelectComponent, AppDatePickerComponent],
   templateUrl: './employees.component.html',
   styleUrl: './employees.component.scss'
 })
@@ -75,6 +77,17 @@ export class EmployeesComponent implements OnInit {
     { value: 'Mensal', label: 'Valor fixo mensal' },
     { value: 'Por hora', label: 'Por hora trabalhada' },
     { value: 'Por serviço', label: 'Por serviço entregue' }
+  ];
+
+  readonly typeFilterOptions: AppSelectOption[] = [
+    { value: 'all', label: 'Todos os contratos' },
+    { value: 'CLT', label: 'CLT' },
+    { value: 'Freelancer', label: 'Freelancer' }
+  ];
+
+  readonly statusOptions: AppSelectOption[] = [
+    { value: 'Ativo', label: 'Ativo' },
+    { value: 'Inativo', label: 'Inativo' }
   ];
 
   ngOnInit() {

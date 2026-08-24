@@ -4,12 +4,14 @@ import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
+import { AppDatePickerComponent } from '../../shared/components/app-date-picker/app-date-picker.component';
 import {
   ResultadoResumo,
   ResultadoRow,
   ResultadosApiService,
   ResultadosPeriodo
 } from '../../services/resultados-api.service';
+import { PrecificacoesApiService } from '../../services/precificacoes-api.service';
 
 interface ResultRowView {
   name: string;
@@ -37,12 +39,13 @@ interface ResultRowView {
 @Component({
   selector: 'app-results',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent],
+  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, AppDatePickerComponent],
   templateUrl: './results.component.html',
   styleUrl: './results.component.scss'
 })
 export class ResultsComponent implements OnInit {
   private readonly api = inject(ResultadosApiService);
+  private readonly precificacoesApi = inject(PrecificacoesApiService);
   private readonly currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   private readonly percentFormat = new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: 1,
@@ -60,6 +63,9 @@ export class ResultsComponent implements OnInit {
   rows: ResultadoRow[] = [];
   totals: ResultadoResumo = { totalProfit: 0, totalRevenue: 0, averageMargin: 0, analysedCount: 0 };
 
+  /** Dias (yyyy-MM-dd) com simulação de preço salva — marcados no calendário do período. */
+  markedDates: string[] = [];
+
   readonly periods: { value: ResultadosPeriodo; label: string }[] = [
     { value: 'all', label: 'Todo o período' },
     { value: 'today', label: 'Hoje' },
@@ -70,6 +76,17 @@ export class ResultsComponent implements OnInit {
 
   ngOnInit() {
     this.carregar();
+    this.carregarDiasComProdutos();
+  }
+
+  /** Datas com simulação salva, para marcar no calendário — não bloqueia a tela se falhar. */
+  private carregarDiasComProdutos() {
+    this.precificacoesApi.listar().subscribe({
+      next: simulacoes => {
+        this.markedDates = Array.from(new Set(simulacoes.map(item => item.createdAt.slice(0, 10))));
+      },
+      error: () => {}
+    });
   }
 
   setPeriod(period: ResultadosPeriodo) {

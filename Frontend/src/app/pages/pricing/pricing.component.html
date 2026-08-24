@@ -24,10 +24,15 @@
           </div>
           <div class="form-group full">
             <label for="recipeSelect">Produto ou receita cadastrada</label>
-            <select id="recipeSelect" name="recipe" [(ngModel)]="selectedRecipeId" (ngModelChange)="onRecipeChange()" [disabled]="loading || !recipes.length">
-              <option *ngIf="!recipes.length" value="">{{ loading ? 'Carregando produtos...' : 'Nenhum produto cadastrado' }}</option>
-              <option *ngFor="let item of recipes" [value]="item.id">{{ recipeOptionLabel(item) }}</option>
-            </select>
+            <app-select
+              id="recipeSelect"
+              name="recipe"
+              [options]="recipeOptions"
+              [(ngModel)]="selectedRecipeId"
+              (ngModelChange)="onRecipeChange()"
+              [disabled]="loading || !recipes.length"
+              [minHeight]="50"
+            ></app-select>
             <p class="helper">O custo é carregado automaticamente a partir da composição salva do produto.</p>
           </div>
           <div class="recipe-preview">

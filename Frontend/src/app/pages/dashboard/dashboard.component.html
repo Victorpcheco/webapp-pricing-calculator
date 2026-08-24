@@ -1,112 +1,204 @@
 <app-shell breadcrumb="Visão geral">
   <main class="content">
 
-    <!-- Banner de Boas-Vindas -->
-    <div class="welcome-hero">
-      <h1>Olá, {{ firstName }}! 👋</h1>
-      <p>Bem-vinda ao seu painel MeuPreço. Aqui você acompanha a saúde financeira do seu negócio e gerencia seus
-        produtos em um só lugar.</p>
+    <!-- Cabeçalho -->
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">{{ greeting }}</span>
+        <h1>Olá, {{ firstName }}!</h1>
+      </div>
+      <p>Aqui você acompanha a saúde financeira do seu negócio e gerencia seus produtos em um só lugar.</p>
     </div>
 
     <!-- KPIs Resumo Rápido -->
     <div class="kpi-grid">
-      <div class="kpi-card">
+      <div class="kpi-card" appSpotlight>
         <div class="kpi-head">
+          <span class="kpi-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </span>
           <span class="kpi-label">Valor da sua hora</span>
-          <span class="kpi-icon blue">R$</span>
         </div>
         <div class="kpi-value">{{ kpiHour }}</div>
         <div class="kpi-sub">Calculado em Meus Custos</div>
       </div>
 
-      <div class="kpi-card">
+      <div class="kpi-card" appSpotlight>
         <div class="kpi-head">
+          <span class="kpi-icon orange">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+          </span>
           <span class="kpi-label">Insumos cadastrados</span>
-          <span class="kpi-icon orange">◇</span>
         </div>
         <div class="kpi-value">{{ kpiItems }}</div>
         <div class="kpi-sub">Ingredientes e embalagens</div>
       </div>
 
-      <div class="kpi-card">
+      <div class="kpi-card" appSpotlight>
         <div class="kpi-head">
+          <span class="kpi-icon purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>
+          </span>
           <span class="kpi-label">Produtos cadastrados</span>
-          <span class="kpi-icon purple">▦</span>
         </div>
         <div class="kpi-value">{{ kpiRecipes }}</div>
         <div class="kpi-sub">Produtos prontos para venda</div>
       </div>
 
-      <div class="kpi-card">
+      <div class="kpi-card" appSpotlight>
         <div class="kpi-head">
+          <span class="kpi-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6.5 13.5 15l-5-5-7 7"/><path d="M16 6.5h6v6"/></svg>
+          </span>
           <span class="kpi-label">Simulações de lucro</span>
-          <span class="kpi-icon green">↗</span>
         </div>
         <div class="kpi-value">{{ kpiSims }}</div>
         <div class="kpi-sub">Preços praticados analisados</div>
       </div>
     </div>
 
-    <!-- Grade com Gráfico de Lucro e Atividades Recentes -->
+    <!-- Grade principal -->
     <div class="dashboard-grid">
 
       <!-- Gráfico de Comparação: Custo vs Preço de Venda -->
       <div class="card">
         <div class="card-head">
           <div>
-            <h2>Desempenho dos Produtos (Custo × Venda)</h2>
-            <span style="font-size:.68rem; color:var(--text-muted);">Comparação de preço praticado e margem
-              gerada</span>
+            <h2>Desempenho dos Produtos</h2>
+            <span class="card-sub">Comparação de custo e margem gerada por produto</span>
+          </div>
+
+          <div class="chart-switch" role="tablist" aria-label="Estilo do gráfico">
+            <button
+              type="button"
+              role="tab"
+              [class.active]="chartView === 'bars'"
+              [attr.aria-selected]="chartView === 'bars'"
+              (click)="setChartView('bars')"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="13" height="4" rx="1"/><rect x="3" y="14" width="18" height="4" rx="1"/></svg>
+              Barras
+            </button>
+            <button
+              type="button"
+              role="tab"
+              [class.active]="chartView === 'columns'"
+              [attr.aria-selected]="chartView === 'columns'"
+              (click)="setChartView('columns')"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="4" height="11" rx="1"/><rect x="10" y="5" width="4" height="16" rx="1"/><rect x="16" y="13" width="4" height="8" rx="1"/></svg>
+              Colunas
+            </button>
           </div>
         </div>
 
-        <div class="chart-container">
-          <div class="chart-bars">
-            <div class="bar-row" *ngFor="let bar of chartBars">
-              <div class="bar-label" [title]="bar.nome">{{ bar.nome }}</div>
-              <div class="bar-track">
-                <div class="bar-fill cost" [style.width.%]="bar.custoWidth" [title]="bar.custoTitle">
-                  {{ bar.custoLabel }}
-                </div>
-                <div class="bar-fill profit" [style.width.%]="bar.lucroWidth" [title]="bar.lucroTitle">
-                  {{ bar.lucroLabel }}
-                </div>
-              </div>
-              <div class="bar-val">{{ bar.vendaLabel }}</div>
-            </div>
-
-            <div class="empty-state" *ngIf="!chartBars.length">
-              <div class="empty-icon">📊</div>
-              <p>Nenhum produto cadastrado ainda.<br>
-                <a href="#" (click)="$event.preventDefault()">Cadastre seu primeiro produto</a>
-                para visualizar o gráfico.</p>
-            </div>
+        @if (chartBars.length) {
+          <div class="legend">
+            <span class="legend-item"><i class="dot cost"></i>Custo</span>
+            <span class="legend-item"><i class="dot profit"></i>Lucro</span>
           </div>
-        </div>
+
+          <div class="chart-container">
+            @switch (chartView) {
+              @case ('bars') {
+                <div class="chart-bars">
+                  <div class="bar-row" *ngFor="let bar of chartBars">
+                    <div class="bar-label" [title]="bar.nome">{{ bar.nome }}</div>
+                    <div class="bar-track">
+                      <div class="bar-fill cost" [style.width.%]="bar.custoWidth" [title]="bar.custoTitle">
+                        {{ bar.custoLabel }}
+                      </div>
+                      <div class="bar-fill profit" [style.width.%]="bar.lucroWidth" [title]="bar.lucroTitle">
+                        {{ bar.lucroLabel }}
+                      </div>
+                    </div>
+                    <div class="bar-val">{{ bar.vendaLabel }}</div>
+                  </div>
+                </div>
+              }
+
+              @case ('columns') {
+                <div class="columns-chart">
+                  <div class="column-group" *ngFor="let bar of chartBars">
+                    <div class="column-bars">
+                      <div class="column-gridlines" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                      </div>
+                      <div class="column-bar cost" [style.height.%]="bar.custoWidth" [title]="bar.custoTitle"></div>
+                      <div class="column-bar profit" [style.height.%]="bar.lucroValueWidth" [title]="bar.lucroTitle"></div>
+                    </div>
+                    <span class="column-label" [title]="bar.nome">{{ bar.nome }}</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <span class="empty-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12.5" y="8" width="3" height="10"/><rect x="18" y="5" width="3" height="13"/></svg>
+            </span>
+            <p>Nenhum produto cadastrado ainda.<br>
+              <a href="#" (click)="$event.preventDefault()">Cadastre seu primeiro produto</a>
+              para visualizar o gráfico.</p>
+          </div>
+        }
       </div>
 
-      <!-- Atividades Recentes / Ações no Sistema -->
-      <div class="card">
-        <div class="card-head">
-          <h2>Atividade Recente</h2>
-          <a href="./pages/products/products.component" (click)="$event.preventDefault()">+ Novo produto</a>
-        </div>
+      <!-- Coluna lateral: margem média + atividades -->
+      <div class="side-col">
 
-        <div class="activity-list">
-          <div class="activity-item" *ngFor="let act of activities">
-            <div class="act-icon" [style.background]="act.bg" [style.color]="act.color">{{ act.icon }}</div>
-            <div class="act-info">
-              <strong>{{ act.title }}</strong>
-              <span>{{ act.desc }}</span>
+        <!-- Margem média (derivada dos produtos com preço definido) -->
+        <div class="card margin-card">
+          <div class="card-head">
+            <h2>Margem Média</h2>
+          </div>
+
+          <div class="margin-body">
+            <div class="margin-ring" [style.--ring-value]="avgMarginPercent">
+              <span class="margin-ring-value">{{ avgMarginPercent }}%</span>
             </div>
-            <div class="act-time">{{ act.time }}</div>
-          </div>
-
-          <div class="empty-state" *ngIf="!activities.length">
-            <div class="empty-icon">📝</div>
-            <p>Suas ações recentes (insumos, produtos e preços) aparecerão aqui após o primeiro cadastro.</p>
+            <p>Lucro médio sobre o preço de venda dos seus produtos precificados.</p>
           </div>
         </div>
+
+        <!-- Atividades Recentes -->
+        <div class="card">
+          <div class="card-head">
+            <h2>Atividade Recente</h2>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item" *ngFor="let act of activities">
+              <div class="act-icon" [style.background]="act.bg" [style.color]="act.color">
+                @switch (act.icon) {
+                  @case ('pricing') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6.5 13.5 15l-5-5-7 7"/><path d="M16 6.5h6v6"/></svg>
+                  }
+                  @case ('products') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>
+                  }
+                  @case ('supplies') {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+                  }
+                }
+              </div>
+              <div class="act-info">
+                <strong>{{ act.title }}</strong>
+                <span>{{ act.desc }}</span>
+              </div>
+              <div class="act-time">{{ act.time }}</div>
+            </div>
+
+            <div class="empty-state" *ngIf="!activities.length">
+              <span class="empty-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+              </span>
+              <p>Suas ações recentes (insumos, produtos e preços) aparecerão aqui após o primeiro cadastro.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
