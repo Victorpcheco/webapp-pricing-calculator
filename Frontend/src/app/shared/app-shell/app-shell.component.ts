@@ -3,10 +3,13 @@ import { Component, HostListener, Input, ViewChild, inject } from '@angular/core
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HelpCenterComponent } from '../components/help-center/help-center.component';
+import { SpotlightDirective } from '../directives/spotlight.directive';
+
+export type NavIcon = 'home' | 'costs' | 'supplies' | 'products' | 'team' | 'pricing' | 'results';
 
 interface NavigationItem {
   label: string;
-  icon: string;
+  icon: NavIcon;
   path: string;
 }
 
@@ -58,7 +61,7 @@ const SIDEBAR_TIPS: Record<string, SidebarTip> = {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, HelpCenterComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, HelpCenterComponent, SpotlightDirective],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss'
 })
@@ -81,13 +84,13 @@ export class AppShellComponent {
   isDropdownOpen = false;
 
   readonly navigation: NavigationItem[] = [
-    { label: 'Visão geral', icon: '⌂', path: '/dashboard' },
-    { label: 'Meus Custos', icon: 'R$', path: '/meus-custos' },
-    { label: 'Meus Insumos', icon: '◇', path: '/meus-insumos' },
-    { label: 'Meus Produtos', icon: '▦', path: '/meus-produtos' },
-    { label: 'Meus Colaboradores', icon: 'RH', path: '/meus-colaboradores' },
-    { label: 'Calcular Preços', icon: '%', path: '/precificacao' },
-    { label: 'Meus Resultados', icon: '↗', path: '/meus-resultados' }
+    { label: 'Visão geral', icon: 'home', path: '/dashboard' },
+    { label: 'Meus Custos', icon: 'costs', path: '/meus-custos' },
+    { label: 'Meus Insumos', icon: 'supplies', path: '/meus-insumos' },
+    { label: 'Meus Produtos', icon: 'products', path: '/meus-produtos' },
+    { label: 'Meus Colaboradores', icon: 'team', path: '/meus-colaboradores' },
+    { label: 'Calcular Preços', icon: 'pricing', path: '/precificacao' },
+    { label: 'Meus Resultados', icon: 'results', path: '/meus-resultados' }
   ];
 
   private get tip(): SidebarTip {
@@ -139,6 +142,6 @@ export class AppShellComponent {
 
   logout() {
     this.authService.logout();
-    void this.router.navigate(['/']);
+    void this.router.navigate(['/login']);
   }
 }

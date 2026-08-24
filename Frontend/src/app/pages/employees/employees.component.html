@@ -32,12 +32,12 @@
       <div class="table-toolbar">
         <label class="search-wrap"><span>⌕</span><input type="search" placeholder="Buscar por nome ou cargo..."
             autocomplete="off" [(ngModel)]="search" [ngModelOptions]="{ standalone: true }"></label>
-        <select aria-label="Filtrar por tipo de contratação" [(ngModel)]="typeFilter"
-          [ngModelOptions]="{ standalone: true }">
-          <option value="all">Todos os contratos</option>
-          <option value="CLT">CLT</option>
-          <option value="Freelancer">Freelancer</option>
-        </select>
+        <app-select
+          ariaLabel="Filtrar por tipo de contratação"
+          [options]="typeFilterOptions"
+          [(ngModel)]="typeFilter"
+          [ngModelOptions]="{ standalone: true }"
+        ></app-select>
         <button class="outline-btn" type="button" (click)="clearAll()"
           [disabled]="loading || !items.length">Limpar dados</button>
       </div>
@@ -138,7 +138,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="admissionDate">Data de admissão</label>
-              <input type="date" id="admissionDate" name="admission_date" [(ngModel)]="formAdmissionDate">
+              <app-date-picker id="admissionDate" name="admission_date" [(ngModel)]="formAdmissionDate"></app-date-picker>
             </div>
             <div class="form-group">
               <label class="form-label" for="employeePhone">Telefone <small
@@ -148,10 +148,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="employeeStatus">Status</label>
-              <select id="employeeStatus" name="employee_status" [(ngModel)]="formStatus">
-                <option value="Ativo">Ativo</option>
-                <option value="Inativo">Inativo</option>
-              </select>
+              <app-select id="employeeStatus" name="employee_status" [options]="statusOptions" [(ngModel)]="formStatus" [minHeight]="50"></app-select>
             </div>
 
             <div class="form-group" [class.full]="formContractType === 'CLT'">
@@ -164,10 +161,7 @@
             </div>
             <div class="form-group" *ngIf="formContractType === 'Freelancer'">
               <label class="form-label" for="freelancerFrequency">Forma de pagamento</label>
-              <select id="freelancerFrequency" name="freelancer_frequency" [(ngModel)]="formFreelancerFrequency">
-                <option *ngFor="let option of freelancerFrequencyOptions" [value]="option.value">{{ option.label }}
-                </option>
-              </select>
+              <app-select id="freelancerFrequency" name="freelancer_frequency" [options]="freelancerFrequencyOptions" [(ngModel)]="formFreelancerFrequency" [minHeight]="50"></app-select>
             </div>
           </div>
 

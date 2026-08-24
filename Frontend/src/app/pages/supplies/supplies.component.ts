@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AppSelectComponent, AppSelectOption } from '../../shared/components/app-select/app-select.component';
 import {
   InsumoItem,
   InsumoTipo,
@@ -33,7 +34,7 @@ const BASE_UNIT: Record<InsumoUnidade, string> = { kg: 'g', g: 'g', L: 'ml', ml:
 @Component({
   selector: 'app-supplies',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent, AppSelectComponent],
   templateUrl: './supplies.component.html',
   styleUrl: './supplies.component.scss'
 })
@@ -67,6 +68,12 @@ export class SuppliesComponent implements OnInit {
     { value: 'L', label: 'Litro (L)' },
     { value: 'ml', label: 'Mililitro (ml)' },
     { value: 'un', label: 'Unidade (un)' }
+  ];
+
+  readonly typeFilterOptions: AppSelectOption[] = [
+    { value: 'all', label: 'Todos os tipos' },
+    { value: 'Ingrediente', label: 'Ingredientes' },
+    { value: 'Embalagem', label: 'Embalagens' }
   ];
 
   ngOnInit() {

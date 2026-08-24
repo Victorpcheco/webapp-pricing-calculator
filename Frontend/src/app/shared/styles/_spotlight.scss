@@ -1,0 +1,42 @@
+/* ============================================================
+   Brilho que acompanha o cursor — usado junto com a diretiva
+   appSpotlight (shared/directives/spotlight.directive.ts), que
+   só rastreia o ponteiro e escreve --spot-x/--spot-y/--spot-opacity
+   no elemento host. O visual (tamanho, cor) fica a cargo de quem
+   consome o mixin abaixo.
+
+   @property permite que a posição do gradiente seja transicionada
+   suavemente (efeito de "perseguir" o cursor); navegadores sem
+   suporte apenas acompanham o cursor sem a suavização.
+============================================================ */
+
+@property --spot-x {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --spot-y {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@mixin spot-glow($size: 220px, $color: rgba(37, 99, 235, 0.14)) {
+  position: relative;
+  --spot-x: 50%;
+  --spot-y: 50%;
+  --spot-opacity: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: radial-gradient(#{$size} circle at var(--spot-x) var(--spot-y), #{$color}, transparent 70%);
+    opacity: var(--spot-opacity);
+    transition: opacity 0.35s ease, --spot-x 0.2s ease-out, --spot-y 0.2s ease-out;
+    pointer-events: none;
+  }
+}

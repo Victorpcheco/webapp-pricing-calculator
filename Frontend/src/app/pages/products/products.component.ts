@@ -7,6 +7,7 @@ import { forkJoin } from 'rxjs';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AppSelectComponent, AppSelectOption } from '../../shared/components/app-select/app-select.component';
 import {
   CompositionInput,
   ProductItem,
@@ -34,7 +35,7 @@ import { InsumoItem, InsumosApiService } from '../../services/insumos-api.servic
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent, AppSelectComponent],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'
 })
@@ -109,6 +110,10 @@ export class ProductsComponent implements OnInit {
   get compositionCountLabel(): string {
     const total = this.composition.length;
     return `${total} ${total === 1 ? 'item' : 'itens'}`;
+  }
+
+  get supplyOptions(): AppSelectOption[] {
+    return this.supplies.map(option => ({ value: option.id, label: `${option.name} · ${option.type}` }));
   }
 
   private findSupply(supplyId: string): InsumoItem | undefined {

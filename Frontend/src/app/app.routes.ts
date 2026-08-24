@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { LandingComponent } from './pages/landing/landing.component';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
@@ -7,6 +8,10 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 export const routes: Routes = [
   {
     path: '',
+    component: LandingComponent
+  },
+  {
+    path: 'login',
     component: LoginComponent
   },
   {

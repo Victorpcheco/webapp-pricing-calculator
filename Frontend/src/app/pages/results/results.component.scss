@@ -65,16 +65,9 @@
   display: flex;
 }
 
-.custom-date-range input[type="date"] {
-  min-height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 6px 12px;
-  background: #f8fafc;
-  color: var(--text-main);
-  font-size: .85rem;
-  font-weight: 600;
-  outline: none;
+.custom-date-range app-date-picker {
+  width: auto;
+  min-width: 150px;
 }
 
 .custom-date-range span {

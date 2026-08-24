@@ -7,6 +7,7 @@ import { forkJoin } from 'rxjs';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { WorkspaceToastComponent } from '../../shared/components/workspace-toast/workspace-toast.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AppSelectComponent, AppSelectOption } from '../../shared/components/app-select/app-select.component';
 import { ProductItem, ProdutosApiService } from '../../services/produtos-api.service';
 import {
   PrecificacoesApiService,
@@ -41,7 +42,7 @@ interface Viability {
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, AppShellComponent, WorkspaceToastComponent, ConfirmDialogComponent, AppSelectComponent],
   templateUrl: './pricing.component.html',
   styleUrl: './pricing.component.scss'
 })
@@ -109,6 +110,13 @@ export class PricingComponent implements OnInit {
 
   recipeOptionLabel(item: ProductItem): string {
     return `${item.name} - Custo: ${this.money(Number(item.unitCost) || 0)}`;
+  }
+
+  get recipeOptions(): AppSelectOption[] {
+    if (!this.recipes.length) {
+      return [{ value: '', label: this.loading ? 'Carregando produtos...' : 'Nenhum produto cadastrado' }];
+    }
+    return this.recipes.map(item => ({ value: item.id, label: this.recipeOptionLabel(item) }));
   }
 
   /* ===================== CÁLCULO (prévia em tempo real) ===================== */
