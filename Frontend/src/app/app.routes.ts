@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard, guestGuard } from './guards/auth.guard';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { LandingComponent } from './pages/landing/landing.component';
 import { LoginComponent } from './pages/login/login.component';
@@ -12,49 +13,60 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    component: LoginComponent
+    component: LoginComponent,
+    canActivate: [guestGuard]
   },
   {
     path: 'cadastro',
-    component: RegisterComponent
+    component: RegisterComponent,
+    canActivate: [guestGuard]
   },
   {
     path: 'esqueci-senha',
-    component: ForgotPasswordComponent
+    component: ForgotPasswordComponent,
+    canActivate: [guestGuard]
   },
   {
     path: 'redefinir-senha',
-    component: ResetPasswordComponent
+    component: ResetPasswordComponent,
+    canActivate: [guestGuard]
   },
   // As telas internas são carregadas sob demanda: quem abre o login
   // não precisa baixar o workspace inteiro.
   {
     path: 'dashboard',
-    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'meus-custos',
-    loadComponent: () => import('./pages/costs/costs.component').then(m => m.CostsComponent)
+    loadComponent: () => import('./pages/costs/costs.component').then(m => m.CostsComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'meus-insumos',
-    loadComponent: () => import('./pages/supplies/supplies.component').then(m => m.SuppliesComponent)
+    loadComponent: () => import('./pages/supplies/supplies.component').then(m => m.SuppliesComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'meus-produtos',
-    loadComponent: () => import('./pages/products/products.component').then(m => m.ProductsComponent)
+    loadComponent: () => import('./pages/products/products.component').then(m => m.ProductsComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'meus-colaboradores',
-    loadComponent: () => import('./pages/employees/employees.component').then(m => m.EmployeesComponent)
+    loadComponent: () => import('./pages/employees/employees.component').then(m => m.EmployeesComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'precificacao',
-    loadComponent: () => import('./pages/pricing/pricing.component').then(m => m.PricingComponent)
+    loadComponent: () => import('./pages/pricing/pricing.component').then(m => m.PricingComponent),
+    canActivate: [authGuard]
   },
   {
     path: 'meus-resultados',
-    loadComponent: () => import('./pages/results/results.component').then(m => m.ResultsComponent)
+    loadComponent: () => import('./pages/results/results.component').then(m => m.ResultsComponent),
+    canActivate: [authGuard]
   },
   {
     path: '**',
