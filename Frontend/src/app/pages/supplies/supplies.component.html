@@ -31,11 +31,12 @@
       <div class="table-toolbar">
         <label class="search-wrap"><span>⌕</span><input type="search" placeholder="Buscar por nome do item..."
             autocomplete="off" [(ngModel)]="search" [ngModelOptions]="{ standalone: true }"></label>
-        <select aria-label="Filtrar por tipo" [(ngModel)]="typeFilter" [ngModelOptions]="{ standalone: true }">
-          <option value="all">Todos os tipos</option>
-          <option value="Ingrediente">Ingredientes</option>
-          <option value="Embalagem">Embalagens</option>
-        </select>
+        <app-select
+          ariaLabel="Filtrar por tipo"
+          [options]="typeFilterOptions"
+          [(ngModel)]="typeFilter"
+          [ngModelOptions]="{ standalone: true }"
+        ></app-select>
         <button class="outline-btn" type="button" (click)="clearAll()"
           [disabled]="loading || !items.length">Limpar dados</button>
       </div>
@@ -130,9 +131,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="unit">Unidade da compra <span class="required">*</span></label>
-              <select id="unit" name="unit" [(ngModel)]="formUnit" required>
-                <option *ngFor="let option of unitOptions" [value]="option.value">{{ option.label }}</option>
-              </select>
+              <app-select id="unit" name="unit" [options]="unitOptions" [(ngModel)]="formUnit" [minHeight]="50" required></app-select>
             </div>
             <div class="form-group full">
               <label class="form-label" for="price">Preço total pago <span class="required">*</span></label>

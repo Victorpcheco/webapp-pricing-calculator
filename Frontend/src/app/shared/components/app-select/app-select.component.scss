@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.app-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  color: var(--text-main);
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.app-select-trigger:hover:not(:disabled) {
+  border-color: #bfdbfe;
+}
+
+.app-select-trigger.open {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .11);
+}
+
+.app-select-trigger:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.app-select-trigger.placeholder .app-select-value {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.app-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-select-chevron {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  transition: transform .18s ease;
+}
+
+.app-select-trigger.open .app-select-chevron {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.app-select-menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, .14);
+  animation: app-select-pop .12s ease;
+}
+
+.app-select-menu li {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+
+.app-select-menu li.active {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.app-select-menu li.selected {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+@keyframes app-select-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
