@@ -153,7 +153,7 @@
 
 .modal {
   width: min(650px, 100%);
-  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
   border-radius: 22px;
   background: #fff;
@@ -390,12 +390,70 @@
   }
 
   .modal {
-    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
   }
 
   .modal-head,
   .modal-body,
   .modal-actions {
     padding-inline: 18px;
+  }
+}
+
+@media (max-width: 820px) {
+  .heading-actions {
+    width: 100%;
+  }
+
+  .heading-actions .primary-btn {
+    width: 100%;
+  }
+
+  .modal-backdrop {
+    padding: 12px;
+    place-items: end center;
+  }
+
+  .modal {
+    max-height: calc(100dvh - 24px);
+    border-radius: 20px;
+  }
+
+  .modal-head {
+    padding: 20px 18px 16px;
+  }
+
+  .close-btn {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ação principal por último e em largura cheia: fica sob o polegar. */
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    gap: 10px;
+    padding: 16px 18px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .modal-actions button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .type-selector {
+    grid-template-columns: 1fr;
+  }
+
+  /* Anula o piso de 190px desta tela: no celular a primeira coluna fica
+     fixa enquanto o resto da tabela rola, e precisa caber na largura. */
+  .item-cell {
+    min-width: 0;
   }
 }

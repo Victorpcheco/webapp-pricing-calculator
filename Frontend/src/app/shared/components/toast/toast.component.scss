@@ -69,3 +69,23 @@
     transform: translateX(0) scale(1);
   }
 }
+
+/* No celular o toast ocupa a largura da tela: com `min-width: 300px` fixo
+   ele estourava a viewport em aparelhos de 320px. */
+@media (max-width: 560px) {
+  .toast-container {
+    right: 12px;
+    left: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .toast {
+    min-width: 0;
+    max-width: none;
+    padding: 14px 16px;
+  }
+
+  .toast-close {
+    padding: 8px;
+  }
+}

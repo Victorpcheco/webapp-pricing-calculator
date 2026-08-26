@@ -29,6 +29,9 @@
 ------------------------------------------------------------ */
 .app-shell {
   min-height: 100vh;
+  /* `dvh` acompanha a barra do navegador entrando e saindo no celular;
+     `vh` fica travado na altura maior e deixa um vazio no rodapé. */
+  min-height: 100dvh;
   background: var(--page);
   color: var(--text-main);
   font-family: var(--font);

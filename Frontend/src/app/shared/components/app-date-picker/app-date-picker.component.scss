@@ -261,3 +261,29 @@
     opacity: 0;
   }
 }
+
+@media (max-width: 820px) {
+  .app-date-trigger {
+    min-height: 50px;
+    /* Abaixo de 16px o iOS dá zoom ao abrir o campo. */
+    font-size: 16px;
+  }
+
+  /* O painel tem largura fixa de 296px: perto da borda direita da tela
+     ele passava do limite da viewport. */
+  .app-date-panel {
+    right: 0;
+    width: auto;
+    min-width: min(296px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+  }
+
+  .app-date-cell {
+    height: 40px;
+  }
+
+  .app-date-nav {
+    width: 34px;
+    height: 34px;
+  }
+}

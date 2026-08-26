@@ -111,3 +111,16 @@
     transform: none;
   }
 }
+
+@media (max-width: 820px) {
+  .app-select-trigger {
+    min-height: 50px;
+    /* Abaixo de 16px o iOS dá zoom ao abrir o campo. */
+    font-size: 16px;
+  }
+
+  .app-select-menu li {
+    padding: 13px 12px;
+    font-size: .95rem;
+  }
+}
