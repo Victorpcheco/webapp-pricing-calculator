@@ -538,6 +538,9 @@ select:focus {
 
 .table-scroll {
   overflow-x: auto;
+  /* A tabela rola sozinha no celular em vez de arrastar a página junto. */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 table {
@@ -691,13 +694,149 @@ tbody tr:hover {
 @media (max-width: 820px) {
   .content {
     padding: 24px 16px 50px;
+    gap: 20px;
+  }
+
+  .page-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .page-heading p {
+    font-size: .95rem;
+  }
+
+  .card,
+  .table-card {
+    border-radius: 16px;
+  }
+
+  .card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 18px 16px;
+  }
+
+  .form-section {
+    padding: 20px 18px;
+  }
+
+  .section-title {
+    flex-wrap: wrap;
+  }
+
+  .section-title span:last-child {
+    flex: 1 0 100%;
+    margin-left: 0;
   }
 
   .fields-grid {
     grid-template-columns: 1fr;
   }
 
+  /* Empilhado e invertido: a ação principal fica embaixo, sob o polegar. */
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+    padding: 18px;
+  }
+
+  .ghost-btn,
+  .primary-btn,
+  .outline-btn {
+    width: 100%;
+  }
+
+  .result-hero {
+    padding: 24px 18px;
+  }
+
+  .breakdown {
+    padding: 20px 18px;
+  }
+
+  .calculation-status {
+    margin: 0 18px 20px;
+  }
+
   .table-toolbar {
     grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .table-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  th {
+    padding: 13px 16px;
+  }
+
+  td {
+    padding: 14px 16px;
+  }
+
+  /* A tabela rola na horizontal no celular. Sem fixar a primeira coluna,
+     as demais ficam sem referência de qual linha se está lendo. */
+  th:first-child,
+  td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #fff;
+    box-shadow: 1px 0 0 var(--border);
+  }
+
+  th:first-child {
+    z-index: 2;
+    background: #f8fafc;
+  }
+
+  .item-cell {
+    gap: 10px;
+    min-width: 0;
+    max-width: 46vw;
+  }
+
+  .item-avatar {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .item-copy {
+    min-width: 0;
+  }
+
+  .item-copy strong,
+  .item-copy span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 36px é pequeno demais para o toque; 40px é o mínimo confortável. */
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .empty-state {
+    padding: 40px 18px;
+  }
+
+  /* O iOS aplica zoom sozinho em qualquer campo com fonte abaixo de 16px
+     quando ele recebe foco, e a página fica torta depois disso. */
+  input[type="text"],
+  input[type="number"],
+  select,
+  .search-wrap input,
+  .table-toolbar select {
+    font-size: 16px;
   }
 }

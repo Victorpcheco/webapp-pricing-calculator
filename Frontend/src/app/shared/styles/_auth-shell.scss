@@ -14,6 +14,7 @@
 
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,6 +340,12 @@ button[type='submit']:disabled {
 
   .mobile-brand {
     display: flex;
+  }
+
+  /* O iOS aplica zoom sozinho em campo com fonte abaixo de 16px ao
+     receber foco, e a tela de login fica desalinhada depois disso. */
+  input {
+    font-size: 16px;
   }
 }
 

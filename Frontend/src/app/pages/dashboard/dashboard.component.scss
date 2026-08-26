@@ -537,3 +537,64 @@
     gap: 8px;
   }
 }
+
+@media (max-width: 820px) {
+  .page-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card,
+  .kpi-card {
+    border-radius: 16px;
+  }
+
+  .card-head {
+    padding: 18px 18px 14px;
+  }
+
+  /* As colunas ficariam com poucos pixels de largura cada: em vez de
+     espremer, o gráfico ganha rolagem horizontal própria. */
+  .chart-container {
+    padding: 20px 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .columns-chart {
+    gap: 14px;
+    min-width: max-content;
+    padding: 0 18px;
+  }
+
+  .column-group {
+    flex: 0 0 62px;
+    width: 62px;
+  }
+
+  .legend {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .activity-item {
+    flex-wrap: wrap;
+  }
+
+  /* Sem quebra, o horário empurra o texto da atividade e o corta. */
+  .act-time {
+    flex-basis: 100%;
+    margin-left: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bar-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .bar-val {
+    text-align: left;
+  }
+}

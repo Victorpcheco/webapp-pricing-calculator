@@ -282,5 +282,82 @@
   .ingredient-header,
   .ingredient-row {
     grid-template-columns: 1fr 90px 60px 80px 36px;
+    gap: 8px;
+  }
+
+  .composition-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .add-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .production-type {
+    grid-template-columns: 1fr;
+  }
+
+  .hour-source-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* O iOS dá zoom ao focar campo com fonte abaixo de 16px. */
+  .ingredient-row input {
+    font-size: 16px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Abaixo de 600px as cinco colunas da composição não cabem nem
+   espremidas: cada item vira um cartão de duas linhas — o item em
+   cima, quantidade/unidade/custo embaixo. O cabeçalho da tabela sai
+   de cena e o placeholder do campo passa a rotular a quantidade.
+------------------------------------------------------------------ */
+@media (max-width: 600px) {
+  .ingredient-header {
+    display: none;
+  }
+
+  .ingredient-row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "item item remove"
+      "amount unit cost";
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .item-select {
+    grid-area: item;
+  }
+
+  .amount-input {
+    grid-area: amount;
+  }
+
+  .unit-box {
+    grid-area: unit;
+    min-width: 64px;
+    padding: 0 12px;
+  }
+
+  .row-cost {
+    grid-area: cost;
+    align-self: center;
+  }
+
+  .remove-btn {
+    grid-area: remove;
+    width: 44px;
+    height: 44px;
+  }
+
+  .composition-footer {
+    justify-content: space-between;
   }
 }
