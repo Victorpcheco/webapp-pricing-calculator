@@ -30,7 +30,7 @@
   display: flex;
   flex-direction: column;
   width: min(1020px, 100%);
-  height: min(760px, calc(100vh - 40px));
+  height: min(760px, calc(100dvh - 40px));
   overflow: hidden;
   border-radius: 22px;
   background: #fff;
@@ -669,4 +669,131 @@
 
 .help-foot-btn:hover {
   background: var(--primary-dark);
+}
+/* ============================================================
+   Celular — a lista de telas era uma coluna fixa de 244px, o que
+   sobrava menos de 150px para o texto da ajuda. Aqui ela vira uma
+   fila horizontal de pastilhas acima do conteúdo, e o modal ocupa
+   a tela toda porque o conteúdo é denso e sempre rolável.
+============================================================ */
+@media (max-width: 820px) {
+  .help-backdrop {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .help-modal {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .help-modal .help-head {
+    padding: 18px 18px 14px;
+  }
+
+  .help-head h2 {
+    font-size: 1.15rem;
+  }
+
+  /* A explicação repete o que as pastilhas logo abaixo já mostram. */
+  .help-head-copy p {
+    display: none;
+  }
+
+  .help-modal .help-search {
+    padding: 12px 18px;
+  }
+
+  .help-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .help-modal .help-nav {
+    flex-direction: row;
+    gap: 8px;
+    padding: 12px 18px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+
+  .help-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .help-nav-label {
+    display: none;
+  }
+
+  .help-modal .help-nav-item {
+    flex: 0 0 auto;
+    width: auto;
+    gap: 8px;
+    padding: 8px 14px 8px 8px;
+    border-color: var(--border);
+    background: #fff;
+    white-space: nowrap;
+  }
+
+  .help-nav-icon {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  /* A contagem de campos não cabe na pastilha e some junto. */
+  .help-nav-copy span {
+    display: none;
+  }
+
+  .help-modal .help-panel {
+    gap: 36px;
+    padding: 22px 18px 32px;
+  }
+
+  .help-modal .field-card {
+    padding: 18px 16px;
+  }
+
+  .field-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field-example {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .help-foot {
+    padding: 12px 18px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  /* O atalho de teclado não existe no celular. */
+  .help-foot span {
+    display: none;
+  }
+
+  .help-foot-btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .help-search input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .help-close {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
 }

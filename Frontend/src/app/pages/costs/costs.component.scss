@@ -192,3 +192,29 @@
     position: static;
   }
 }
+
+@media (max-width: 820px) {
+  .progress-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+
+  /* Valor e unidade não cabem lado a lado no celular. */
+  .cost-pair {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .toggle-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .formula-box {
+    margin: 0 18px 18px;
+  }
+}

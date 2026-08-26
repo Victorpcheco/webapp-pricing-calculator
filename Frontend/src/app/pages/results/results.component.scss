@@ -293,3 +293,36 @@
     align-items: flex-start;
   }
 }
+
+@media (max-width: 820px) {
+  .period-filter-bar {
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .period-pill-group {
+    width: 100%;
+  }
+
+  .period-pill {
+    flex: 1 1 auto;
+    min-height: 42px;
+    text-align: center;
+  }
+
+  .custom-date-range {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .custom-date-range app-date-picker {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .kpi-card {
+    padding: 18px 18px 20px;
+    border-radius: 16px;
+  }
+}
