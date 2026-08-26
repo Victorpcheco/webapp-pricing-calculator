@@ -31,17 +31,11 @@
 }
 
 .logo-icon {
-  display: grid;
   width: 38px;
   height: 38px;
   flex-shrink: 0;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--primary);
-  color: #fff;
-  font-size: 1.25rem;
-  font-weight: 800;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, .28);
+  object-fit: contain;
+  display: block;
 }
 
 .logo-text {
